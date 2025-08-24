@@ -370,7 +370,7 @@ namespace Murat
     }
 
 
-    //-------------DÝL YÖNETÝMÝ------------------
+    //-------------Dï¿½L Yï¿½NETï¿½Mï¿½------------------
 
     [Serializable]
     public class DilVerileriAnaObje
@@ -385,27 +385,27 @@ namespace Murat
         public string Metin;
     }
 
-    //-------------REKLAM YÖNETÝMÝ------------------
+    //-------------REKLAM Yï¿½NETï¿½Mï¿½------------------
 
     public class ReklamYonetim
     {
         private InterstitialAd interstitial;
         private RewardedAd _RewardedAd;
-        //GEÇÝÞ REKLAMI
+        //GEï¿½ï¿½ï¿½ REKLAMI
         public void RequestInterstitial()
         {
             string AdUnitId;
 #if UNITY_ANDROID
             AdUnitId = "ca-app-pub-3940256099942544/1033173712";    //TEST REKLAM ID
-            //AdUnitId = "ca-app-pub-3370805830819675/1234395232"; //GERÇEK REKLAM ID
+            //AdUnitId = "ca-app-pub-3370805830819675/1234395232"; //GERï¿½EK REKLAM ID
 #elif UNITY_IPHONE
         AdUnitId = "ca-app-pub-3940256099942544/4411468910";
 #else
         AdUnitId = "unexpected_platform";
 #endif
-            // Reklam isteði oluþtur
+            // Reklam isteï¿½i oluï¿½tur
             AdRequest request = new AdRequest();
-            // Yeni interstitial reklam yükle
+            // Yeni interstitial reklam yï¿½kle
             InterstitialAd.Load(AdUnitId, request, (InterstitialAd ad, LoadAdError error) =>
             {
                 if (error != null || ad == null)
@@ -449,13 +449,13 @@ namespace Murat
                 PlayerPrefs.SetInt("Gecisreklamisayisi", PlayerPrefs.GetInt("Gecisreklamisayisi") + 1);
             }
         }
-        //ÖDÜLLÜ REKLAM
+        //ï¿½Dï¿½LLï¿½ REKLAM
         public void RequestRewardedAd()
         {
             string AdUnitId;
 #if UNITY_ANDROID
             AdUnitId = "ca-app-pub-3940256099942544/5224354917";     //TEST REKLAM ID
-            //AdUnitId = "ca-app-pub-3370805830819675/1892870789";   //GERÇEK REKLAM ID
+            //AdUnitId = "ca-app-pub-3370805830819675/1892870789";   //GERï¿½EK REKLAM ID
 #elif UNITY_IPHONE
         AdUnitId = "ca-app-pub-3940256099942544/1712485313";
 #else
@@ -476,11 +476,11 @@ namespace Murat
         {
             string type = e.Type;
             double amount = e.Amount;
-            Debug.Log("Ödül Alýnsýn : " + type + "----" + amount);
+            Debug.Log("ï¿½dï¿½l Alï¿½nsï¿½n : " + type + "----" + amount);
         }
         private void OdulluReklamKapatildi()
         {
-            Debug.Log("Reklam Kapatýldý");
+            Debug.Log("Reklam Kapatï¿½ldï¿½");
             RequestRewardedAd();
         }
 

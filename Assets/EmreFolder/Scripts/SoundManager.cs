@@ -16,6 +16,12 @@ public class SoundManager : MonoBehaviour
     [Tooltip("Sound when a soldier dies")]
     public AudioClip soldierDeathSound;
     
+    [Tooltip("Sound when combat starts")]
+    public AudioClip combatStartSound;
+    
+    [Tooltip("Sound during combat attacks")]
+    public AudioClip combatAttackSound;
+    
     [Header("Volume Settings")]
     [Range(0f, 1f)]
     public float gateVolume = 0.7f;
@@ -85,6 +91,28 @@ public class SoundManager : MonoBehaviour
         if (soldierDeathSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(soldierDeathSound, deathVolume);
+        }
+    }
+    
+    /// <summary>
+    /// Play sound when combat starts
+    /// </summary>
+    public void PlayCombatStartSound()
+    {
+        if (combatStartSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(combatStartSound, gateVolume);
+        }
+    }
+    
+    /// <summary>
+    /// Play sound during combat attacks
+    /// </summary>
+    public void PlayCombatAttackSound()
+    {
+        if (combatAttackSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(combatAttackSound, deathVolume);
         }
     }
     

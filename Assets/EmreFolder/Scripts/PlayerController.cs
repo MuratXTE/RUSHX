@@ -12,6 +12,9 @@ public class PlayerController : MonoBehaviour
     public bool enablePCInput = true; // For testing
     public bool enableMobileInput = true;
     
+    [Header("Combat Settings")]
+    public bool isInCombat = false; // Disables all input during combat
+    
     [Header("Mobile Input")]
     public float touchSensitivity = 2f;
     
@@ -54,6 +57,9 @@ public class PlayerController : MonoBehaviour
     
     void HandleInput()
     {
+        // Don't process any input if in combat
+        if (isInCombat) return;
+        
         float horizontalInput = 0f;
         
         // PC Input (for testing)
@@ -94,14 +100,17 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 targetPosition = transform.position;
         
-        // Forward movement (auto-run)
-        if (autoMoveForward)
+        // Forward movement (auto-run) - also disabled during combat
+        if (autoMoveForward && !isInCombat)
         {
             targetPosition += Vector3.forward * moveSpeed * Time.fixedDeltaTime;
         }
         
-        // Horizontal movement (limited)
-        targetPosition.x = startPosition.x + currentSidePosition;
+        // Horizontal movement (limited) - also disabled during combat
+        if (!isInCombat)
+        {
+            targetPosition.x = startPosition.x + currentSidePosition;
+        }
         
         // Apply movement
         rb.MovePosition(targetPosition);
@@ -111,6 +120,17 @@ public class PlayerController : MonoBehaviour
     public void SetAutoMove(bool enable)
     {
         autoMoveForward = enable;
+    }
+    
+    // Method to set combat state (disables all input and movement)
+    public void SetCombatState(bool inCombat)
+    {
+        isInCombat = inCombat;
+        if (inCombat)
+        {
+            // Reset touch state when entering combat
+            isTouching = false;
+        }
     }
     
     // Method to reset player position (useful for respawn)

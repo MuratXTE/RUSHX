@@ -27,7 +27,7 @@ public class Ozellestirme : MonoBehaviour
     public GameObject[] Sopalar;
     public Button[] SopaButonlari;
     public Text SopaText;
-    [Header("----------------------------MATER�AL")]
+    [Header("----------------------------MATER�AL")]
     public Material[] Materyaller;
     public Material VarsayilanTema;
     public Button[] MateryalButonlari;
@@ -57,8 +57,20 @@ public class Ozellestirme : MonoBehaviour
         PuanText.text = _BellekYonetim.VeriOku_i("Puan").ToString();
         //_BellekYonetim.VeriKaydet_string("Dil", "TR");
 
+
         _VeriYonetim.Load();
         _ItemBilgileri = _VeriYonetim.ListeyiAktar();
+
+        _BellekYonetim.VeriKaydet_int("Puan", 10000);
+
+        // Debug bilgileri - array boyutlarını kontrol et
+        Debug.Log($"Sapkalar array size: {Sapkalar.Length}");
+        Debug.Log($"Sopalar array size: {Sopalar.Length}");
+        Debug.Log($"Materyaller array size: {Materyaller.Length}");
+        Debug.Log($"ItemBilgileri count: {_ItemBilgileri.Count}");
+        Debug.Log($"AktifSapka value: {_BellekYonetim.VeriOku_i("AktifSapka")}");
+        Debug.Log($"AktifSopa value: {_BellekYonetim.VeriOku_i("AktifSopa")}");
+        Debug.Log($"AktifTema value: {_BellekYonetim.VeriOku_i("AktifTema")}");
 
         DurumuKontrolEt(0, true);
         DurumuKontrolEt(1, true);
@@ -131,19 +143,44 @@ public class Ozellestirme : MonoBehaviour
             }
             else
             {
-
                 foreach (var item in Sapkalar)
                 {
                     item.SetActive(false);
                 }
 
                 SapkaIndex = _BellekYonetim.VeriOku_i("AktifSapka");
-                Sapkalar[SapkaIndex].SetActive(true);
+                
+                // Güvenlik kontrolü: SapkaIndex sınırlar içinde mi?
+                if (SapkaIndex >= 0 && SapkaIndex < Sapkalar.Length)
+                {
+                    Sapkalar[SapkaIndex].SetActive(true);
 
-                SapkaText.text = _ItemBilgileri[SapkaIndex].Item_Ad;
-                TextObjeleri[5].text = SatinAlmaText;
-                islemButonlari[0].interactable = false;
-                islemButonlari[1].interactable = true;
+                    // İkinci güvenlik kontrolü: ItemBilgileri array'i için
+                    if (SapkaIndex >= 0 && SapkaIndex < _ItemBilgileri.Count)
+                    {
+                        SapkaText.text = _ItemBilgileri[SapkaIndex].Item_Ad;
+                    }
+                    else
+                    {
+                        SapkaText.text = "Item Bulunamadı";
+                        Debug.LogError($"ItemBilgileri index out of range: {SapkaIndex}. Array size: {_ItemBilgileri.Count}");
+                    }
+                    
+                    TextObjeleri[5].text = SatinAlmaText;
+                    islemButonlari[0].interactable = false;
+                    islemButonlari[1].interactable = true;
+                }
+                else
+                {
+                    Debug.LogError($"Sapka index out of range: {SapkaIndex}. Array size: {Sapkalar.Length}");
+                    // Hatalı index durumunda sıfırla
+                    _BellekYonetim.VeriKaydet_int("AktifSapka", -1);
+                    SapkaIndex = -1;
+                    SapkaText.text = ItemText;
+                    TextObjeleri[5].text = SatinAlmaText;
+                    islemButonlari[0].interactable = false;
+                    islemButonlari[1].interactable = false;
+                }
             }
             #endregion
         }
@@ -174,13 +211,39 @@ public class Ozellestirme : MonoBehaviour
                 }
 
                 SopaIndex = _BellekYonetim.VeriOku_i("AktifSopa");
-                Sopalar[SopaIndex].SetActive(true);
+                
+                // Güvenlik kontrolü: SopaIndex sınırlar içinde mi?
+                if (SopaIndex >= 0 && SopaIndex < Sopalar.Length)
+                {
+                    Sopalar[SopaIndex].SetActive(true);
 
-                SopaText.text = _ItemBilgileri[SopaIndex + 5].Item_Ad;
-                TextObjeleri[5].text = SatinAlmaText;
-                islemButonlari[0].interactable = false;
-                islemButonlari[1].interactable = true;
-
+                    // İkinci güvenlik kontrolü: ItemBilgileri array'i için
+                    int itemIndex = SopaIndex + 5;
+                    if (itemIndex >= 0 && itemIndex < _ItemBilgileri.Count)
+                    {
+                        SopaText.text = _ItemBilgileri[itemIndex].Item_Ad;
+                    }
+                    else
+                    {
+                        SopaText.text = "Item Bulunamadı";
+                        Debug.LogError($"ItemBilgileri index out of range: {itemIndex}. Array size: {_ItemBilgileri.Count}");
+                    }
+                    
+                    TextObjeleri[5].text = SatinAlmaText;
+                    islemButonlari[0].interactable = false;
+                    islemButonlari[1].interactable = true;
+                }
+                else
+                {
+                    Debug.LogError($"Sopa index out of range: {SopaIndex}. Array size: {Sopalar.Length}");
+                    // Hatalı index durumunda sıfırla
+                    _BellekYonetim.VeriKaydet_int("AktifSopa", -1);
+                    SopaIndex = -1;
+                    SopaText.text = ItemText;
+                    TextObjeleri[5].text = SatinAlmaText;
+                    islemButonlari[0].interactable = false;
+                    islemButonlari[1].interactable = false;
+                }
             }
             #endregion
         }
@@ -207,14 +270,44 @@ public class Ozellestirme : MonoBehaviour
             else
             {
                 MaterialIndex = _BellekYonetim.VeriOku_i("AktifTema");
-                Material[] mats = _Renderer.materials;
-                mats[0] = Materyaller[MaterialIndex];
-                _Renderer.materials = mats;
+                
+                // Güvenlik kontrolü: MaterialIndex sınırlar içinde mi?
+                if (MaterialIndex >= 0 && MaterialIndex < Materyaller.Length)
+                {
+                    Material[] mats = _Renderer.materials;
+                    mats[0] = Materyaller[MaterialIndex];
+                    _Renderer.materials = mats;
 
-                MaterialText.text = _ItemBilgileri[MaterialIndex + 14].Item_Ad;
-                TextObjeleri[5].text = SatinAlmaText;
-                islemButonlari[0].interactable = false;
-                islemButonlari[1].interactable = true;
+                    // İkinci güvenlik kontrolü: ItemBilgileri array'i için
+                    int itemIndex = MaterialIndex + 14;
+                    if (itemIndex >= 0 && itemIndex < _ItemBilgileri.Count)
+                    {
+                        MaterialText.text = _ItemBilgileri[itemIndex].Item_Ad;
+                    }
+                    else
+                    {
+                        MaterialText.text = "Material Bulunamadı";
+                        Debug.LogError($"ItemBilgileri index out of range: {itemIndex}. Array size: {_ItemBilgileri.Count}");
+                    }
+                    
+                    TextObjeleri[5].text = SatinAlmaText;
+                    islemButonlari[0].interactable = false;
+                    islemButonlari[1].interactable = true;
+                }
+                else
+                {
+                    Debug.LogError($"Material index out of range: {MaterialIndex}. Array size: {Materyaller.Length}");
+                    // Hatalı index durumunda sıfırla ve varsayılan materyali kullan
+                    _BellekYonetim.VeriKaydet_int("AktifTema", -1);
+                    MaterialIndex = -1;
+                    Material[] mats = _Renderer.materials;
+                    mats[0] = VarsayilanTema;
+                    _Renderer.materials = mats;
+                    MaterialText.text = ItemText;
+                    TextObjeleri[5].text = SatinAlmaText;
+                    islemButonlari[0].interactable = false;
+                    islemButonlari[1].interactable = false;
+                }
             }
         }
     }

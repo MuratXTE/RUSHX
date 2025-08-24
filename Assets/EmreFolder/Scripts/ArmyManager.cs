@@ -66,6 +66,51 @@ public class ArmyManager : MonoBehaviour
         StartCoroutine(SpawnSoldiersWithAnimation(count));
     }
     
+    // Method to add an existing soldier transform to the army (for pickup soldiers)
+    public void AddExistingSoldier(Transform soldierTransform)
+    {
+        if (soldierTransform == null) return;
+        
+        // Make soldier a child of the player
+        soldierTransform.SetParent(player);
+        
+        // Add to soldiers list
+        soldiers.Add(soldierTransform);
+        
+        // Ensure ArmySoldier component has proper reference
+        ArmySoldier soldierScript = soldierTransform.GetComponent<ArmySoldier>();
+        if (soldierScript == null)
+        {
+            soldierScript = soldierTransform.gameObject.AddComponent<ArmySoldier>();
+        }
+        
+        soldierScript.armyManager = this;
+        soldierScript.canDie = true;
+        
+        // Apply items to soldier
+        StartCoroutine(ApplyItemsToNewSoldier(soldierScript));
+        
+        Debug.Log($"Added existing soldier to army. New army size: {soldiers.Count + 1}");
+        
+        // Trigger reformation after a short delay to position the new soldier
+        StartCoroutine(DelayedReformation());
+    }
+    
+    private System.Collections.IEnumerator ApplyItemsToNewSoldier(ArmySoldier soldierScript)
+    {
+        yield return new WaitForSeconds(0.1f); // Small delay to ensure all components are ready
+        if (soldierScript != null)
+        {
+            soldierScript.ApplyItemsToSoldier();
+        }
+    }
+    
+    private System.Collections.IEnumerator DelayedReformation()
+    {
+        yield return new WaitForSeconds(0.2f);
+        PositionSoldiersInFormation();
+    }
+    
     private IEnumerator SpawnSoldiersWithAnimation(int count)
     {
         for (int i = 0; i < count; i++)
@@ -89,6 +134,15 @@ public class ArmyManager : MonoBehaviour
             
             // Ensure the army manager reference is set
             soldierScript.armyManager = this;
+            
+            // Apply items to soldier after it's created
+            // Small delay to ensure all components are initialized
+            DOVirtual.DelayedCall(0.1f, () => {
+                if (soldierScript != null)
+                {
+                    soldierScript.ApplyItemsToSoldier();
+                }
+            });
             
             // Animate soldier spawn with scale and slight bounce
             newSoldier.transform.DOScale(Vector3.one, spawnAnimationDuration)
@@ -400,6 +454,13 @@ public class ArmyManager : MonoBehaviour
         return soldiers.Count +1; // +1 for the player
     }
     
+    // Get available soldiers for combat (excludes player, player fights last)
+    public List<Transform> GetAvailableSoldiers()
+    {
+        CleanupNullSoldiers();
+        return new List<Transform>(soldiers); // Return copy of soldiers list (player not included)
+    }
+    
     // Public method to manually trigger reformation (useful for testing)
     [ContextMenu("Force Army Reformation")]
     public void ForceReformation()
@@ -440,5 +501,34 @@ public class ArmyManager : MonoBehaviour
                 Destroy(soldier.gameObject);
         }
         soldiers.Clear();
+    }
+    
+    // Method to trigger victory animations for all soldiers
+    public void PlayVictoryAnimation(float animationDuration = 1f, float bounceScale = 1.3f)
+    {
+        Debug.Log($"Playing victory animation for {soldiers.Count} soldiers + player!");
+        
+        // Trigger victory animation on all soldiers
+        for (int i = 0; i < soldiers.Count; i++)
+        {
+            if (soldiers[i] != null)
+            {
+                Animator soldierAnimator = soldiers[i].GetComponentInChildren<Animator>();
+                if (soldierAnimator != null)
+                {
+                    soldierAnimator.SetTrigger("victory");
+                }
+            }
+        }
+        
+        // Trigger victory animation on player too
+        if (player != null)
+        {
+            Animator playerAnimator = player.GetComponentInChildren<Animator>();
+            if (playerAnimator != null)
+            {
+                playerAnimator.SetTrigger("victory");
+            }
+        }
     }
 }

@@ -13,7 +13,7 @@ public class GameManager : MonoBehaviour
     public List<GameObject> OlusmaEfektleri;
     public List<GameObject> YokOlmaEfektleri;
     public List<GameObject> AdamLekesiEfektleri;
-    [Header("LEVEL VER�LER�")]
+    [Header("LEVEL VER�LER�")]
     public List<GameObject> Dusmanlar;
     public int KacDusmanOlsun;
     public GameObject _AnaKarakter;
@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
     ReklamYonetim _ReklamYonetim = new ReklamYonetim();
     UnityEngine.SceneManagement.Scene _Scene;
 
-    [Header("----------------------------GENEL VER�LER�")]
+    [Header("----------------------------GENEL VER�LER�")]
     public AudioSource[] Sesler;
     public GameObject[] islemPanelleri;
     public Slider OyunSesiAyar;
@@ -220,23 +220,48 @@ public class GameManager : MonoBehaviour
     }
     public void ItemleriKontrolEt()
     {
+        // Debug için aktif item değerlerini kontrol et
+        Debug.Log("AktifSapka: " + _BellekYonetim.VeriOku_i("AktifSapka"));
+        Debug.Log("AktifSopa: " + _BellekYonetim.VeriOku_i("AktifSopa")); 
+        Debug.Log("AktifTema: " + _BellekYonetim.VeriOku_i("AktifTema"));
+
         if (_BellekYonetim.VeriOku_i("AktifSapka") != -1)
-        Sapkalar[_BellekYonetim.VeriOku_i("AktifSapka")].SetActive(true);
+        {
+            int sapkaIndex = _BellekYonetim.VeriOku_i("AktifSapka");
+            if (sapkaIndex < Sapkalar.Length)
+            {
+                Sapkalar[sapkaIndex].SetActive(true);
+                Debug.Log("Sapka aktifleştirildi: " + sapkaIndex);
+            }
+        }
 
         if (_BellekYonetim.VeriOku_i("AktifSopa") != -1)
-            Sopalar[_BellekYonetim.VeriOku_i("AktifSopa")].SetActive(true);
+        {
+            int sopaIndex = _BellekYonetim.VeriOku_i("AktifSopa");
+            if (sopaIndex < Sopalar.Length)
+            {
+                Sopalar[sopaIndex].SetActive(true);
+                Debug.Log("Sopa aktifleştirildi: " + sopaIndex);
+            }
+        }
 
         if (_BellekYonetim.VeriOku_i("AktifTema") != -1)
         {
-            Material[] mats = _Renderer.materials;
-            mats[0] = Materyaller[_BellekYonetim.VeriOku_i("AktifTema")];
-            _Renderer.materials = mats;
+            int temaIndex = _BellekYonetim.VeriOku_i("AktifTema");
+            if (temaIndex < Materyaller.Length)
+            {
+                Material[] mats = _Renderer.materials;
+                mats[0] = Materyaller[temaIndex];
+                _Renderer.materials = mats;
+                Debug.Log("Tema aktifleştirildi: " + temaIndex);
+            }
         }
         else
         {
             Material[] mats = _Renderer.materials;
             mats[0] = VarsayilanTema;
             _Renderer.materials = mats;
+            Debug.Log("Varsayılan tema kullanılıyor");
         }
     }
     public void CikisButonislem(string durum)
