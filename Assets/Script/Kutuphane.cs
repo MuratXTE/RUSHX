@@ -308,10 +308,25 @@ namespace Murat
 
         public void Save(List<ItemBilgileri> _ItemBilgileri)
         {
-            BinaryFormatter bf = new BinaryFormatter();
-            FileStream file = File.OpenWrite(Application.persistentDataPath + "/ItemVerileri.gd");
-            bf.Serialize(file, _ItemBilgileri);
-            file.Close();
+            try
+            {
+                if (_ItemBilgileri == null || _ItemBilgileri.Count == 0)
+                {
+                    Debug.LogError("Kaydedilecek item verisi boş!");
+                    return;
+                }
+                
+                BinaryFormatter bf = new BinaryFormatter();
+                FileStream file = File.OpenWrite(Application.persistentDataPath + "/ItemVerileri.gd");
+                bf.Serialize(file, _ItemBilgileri);
+                file.Close();
+                
+                Debug.Log($"✅ {_ItemBilgileri.Count} item başarıyla kaydedildi.");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"❌ Veri kaydedilirken hata: {e.Message}");
+            }
         }
 
         List<ItemBilgileri> _ItemicListe;
@@ -319,16 +334,169 @@ namespace Murat
         {
             if (File.Exists(Application.persistentDataPath + "/ItemVerileri.gd"))
             {
-                BinaryFormatter bf = new BinaryFormatter();
-                FileStream file = File.Open(Application.persistentDataPath + "/ItemVerileri.gd", FileMode.Open);
-                _ItemicListe = (List<ItemBilgileri>)bf.Deserialize(file); 
-                file.Close();
+                try
+                {
+                    BinaryFormatter bf = new BinaryFormatter();
+                    FileStream file = File.Open(Application.persistentDataPath + "/ItemVerileri.gd", FileMode.Open);
+                    _ItemicListe = (List<ItemBilgileri>)bf.Deserialize(file); 
+                    file.Close();
+                    
+                    // Yüklenen verinin geçerliliğini kontrol et
+                    if (_ItemicListe == null || _ItemicListe.Count < 19) // Minimum 19 item gerekli (5 şapka + 9 sopa + 5 material)
+                    {
+                        Debug.LogWarning($"Yüklenen item verisi yetersiz. Count: {(_ItemicListe?.Count ?? 0)}. Varsayılan veriler oluşturuluyor.");
+                        VarsayilanItemVerileriOlustur();
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"Item verileri yüklenirken hata: {e.Message}. Varsayılan veriler oluşturuluyor.");
+                    VarsayilanItemVerileriOlustur();
+                }
             }
+            else
+            {
+                Debug.Log("Item verileri dosyası bulunamadı. Varsayılan veriler oluşturuluyor.");
+                VarsayilanItemVerileriOlustur();
+            }
+        }
+        
+        public void VarsayilanItemVerileriOlustur()
+        {
+            _ItemicListe = new List<ItemBilgileri>();
+            
+            // 5 Şapka (0-4)
+            for (int i = 0; i < 5; i++)
+            {
+                _ItemicListe.Add(new ItemBilgileri
+                {
+                    GrupIndex = 0,
+                    Item_Index = i,
+                    Item_Ad = (i + 1).ToString(), // Sadece sayı: 1, 2, 3, 4, 5
+                    Puan = (i + 1) * 100,
+                    SatinAlmaDurumu = i == 0 // İlk şapka ücretsiz
+                });
+            }
+            
+            // 9 Sopa (5-13)  
+            for (int i = 0; i < 9; i++)
+            {
+                _ItemicListe.Add(new ItemBilgileri
+                {
+                    GrupIndex = 1,
+                    Item_Index = i,
+                    Item_Ad = (i + 1).ToString(), // Sadece sayı: 1, 2, 3, ..., 9
+                    Puan = (i + 1) * 150,
+                    SatinAlmaDurumu = i == 0 // İlk sopa ücretsiz
+                });
+            }
+            
+            // 5 Material (14-18)
+            for (int i = 0; i < 5; i++)
+            {
+                _ItemicListe.Add(new ItemBilgileri
+                {
+                    GrupIndex = 2,
+                    Item_Index = i,
+                    Item_Ad = (i + 1).ToString(), // Sadece sayı: 1, 2, 3, 4, 5
+                    Puan = (i + 1) * 200,
+                    SatinAlmaDurumu = i == 0 // İlk tema ücretsiz
+                });
+            }
+            
+            Debug.Log($"Varsayılan item verileri oluşturuldu. Toplam: {_ItemicListe.Count}");
+        }
+        
+        // TÜM VERİLERİ SIFIRLA - Emergency reset
+        public void TumVerileriSifirla()
+        {
+            try
+            {
+                // Item verilerini tamamen sıfırla
+                _ItemicListe = new List<ItemBilgileri>();
+                VarsayilanItemVerileriOlustur();
+                
+                // Dosyayı sil ve yeniden oluştur
+                string dosyaYolu = Application.persistentDataPath + "/ItemVerileri.gd";
+                if (File.Exists(dosyaYolu))
+                {
+                    File.Delete(dosyaYolu);
+                    Debug.Log("🗑️ Eski item verisi dosyası silindi.");
+                }
+                
+                // Yeni varsayılan veriyi kaydet
+                Save(_ItemicListe);
+                
+                Debug.Log("🔄 TÜM VERİLER SIFIRLANDI! Varsayılan durum: İlk itemler ücretsiz, diğerleri ücretli.");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"❌ Veri sıfırlama hatası: {e.Message}");
+            }
+        }
+        
+        public bool VeriGeçerliliğiKontrolEt()
+        {
+            if (_ItemicListe == null)
+            {
+                Debug.LogError("ItemicListe null!");
+                return false;
+            }
+            
+            if (_ItemicListe.Count < 19)
+            {
+                Debug.LogError($"Yetersiz item sayısı: {_ItemicListe.Count}. Minimum 19 gerekli.");
+                return false;
+            }
+            
+            bool veriHataliMi = false;
+            
+            // Her item'in temel verilerini kontrol et
+            for (int i = 0; i < _ItemicListe.Count; i++)
+            {
+                if (_ItemicListe[i] == null)
+                {
+                    Debug.LogError($"Item {i} null!");
+                    veriHataliMi = true;
+                }
+                else if (string.IsNullOrEmpty(_ItemicListe[i].Item_Ad))
+                {
+                    Debug.LogError($"Item {i} adı boş!");
+                    veriHataliMi = true;
+                    
+                    // Boş adı otomatik düzelt
+                    if (i <= 4) // Şapka
+                        _ItemicListe[i].Item_Ad = (i + 1).ToString();
+                    else if (i <= 13) // Sopa  
+                        _ItemicListe[i].Item_Ad = (i - 4).ToString();
+                    else // Material
+                        _ItemicListe[i].Item_Ad = (i - 13).ToString();
+                        
+                    Debug.Log($"✅ Item {i} adı otomatik düzeltildi: {_ItemicListe[i].Item_Ad}");
+                }
+            }
+            
+            if (veriHataliMi)
+            {
+                Debug.LogWarning("⚠️ Bazı veriler otomatik düzeltildi. Veriyi yeniden kaydediyoruz...");
+                // Düzeltilmiş veriyi kaydet
+                Save(_ItemicListe);
+                return true; // Düzeltildi, devam edebilir
+            }
+            
+            Debug.Log("✅ Tüm item verileri geçerli.");
+            return true;
         }
         public List<ItemBilgileri> ListeyiAktar()
         {
+            // Null kontrolü
+            if (_ItemicListe == null)
+            {
+                Debug.LogWarning("ItemicListe null. Varsayılan veriler oluşturuluyor.");
+                VarsayilanItemVerileriOlustur();
+            }
+            
             return _ItemicListe;
-
         }
         public void ilkKurulumDosyaOlusturma(List<ItemBilgileri> _ItemBilgileri, List<DilVerileriAnaObje> _DilVerileri)
         {

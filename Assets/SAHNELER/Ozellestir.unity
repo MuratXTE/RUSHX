@@ -494,126 +494,107 @@ MonoBehaviour:
   - {fileID: 381721427}
   MaterialText: {fileID: 309383966}
   _Renderer: {fileID: 1342654000788965565}
+  LegacyItemText: {fileID: 822078033}
   Kaydedildi_Animator: {fileID: 745538435}
   Sesler:
   - {fileID: 174892416}
   - {fileID: 174892415}
   - {fileID: 174892414}
   _ItemBilgileri:
-  - GrupIndex: 1
+  - GrupIndex: 0
     Item_Index: 0
-    Item_Ad: "\u015Eapka 1"
+    Item_Ad: 1
+    Puan: 100
+    SatinAlmaDurumu: 1
+  - GrupIndex: 0
+    Item_Index: 1
+    Item_Ad: 2
+    Puan: 200
+    SatinAlmaDurumu: 0
+  - GrupIndex: 0
+    Item_Index: 2
+    Item_Ad: 3
+    Puan: 300
+    SatinAlmaDurumu: 0
+  - GrupIndex: 0
+    Item_Index: 3
+    Item_Ad: 4
+    Puan: 400
+    SatinAlmaDurumu: 0
+  - GrupIndex: 0
+    Item_Index: 4
+    Item_Ad: 5
     Puan: 500
     SatinAlmaDurumu: 0
   - GrupIndex: 1
+    Item_Index: 0
+    Item_Ad: 1
+    Puan: 150
+    SatinAlmaDurumu: 1
+  - GrupIndex: 1
     Item_Index: 1
-    Item_Ad: "\u015Eapka 2"
+    Item_Ad: 2
+    Puan: 300
+    SatinAlmaDurumu: 0
+  - GrupIndex: 1
+    Item_Index: 2
+    Item_Ad: 3
+    Puan: 450
+    SatinAlmaDurumu: 0
+  - GrupIndex: 1
+    Item_Index: 3
+    Item_Ad: 4
+    Puan: 600
+    SatinAlmaDurumu: 0
+  - GrupIndex: 1
+    Item_Index: 4
+    Item_Ad: 5
     Puan: 750
     SatinAlmaDurumu: 0
   - GrupIndex: 1
-    Item_Index: 2
-    Item_Ad: "\u015Eapka 3"
-    Puan: 1000
+    Item_Index: 5
+    Item_Ad: 6
+    Puan: 900
     SatinAlmaDurumu: 0
   - GrupIndex: 1
-    Item_Index: 3
-    Item_Ad: "\u015Eapka 4"
-    Puan: 2000
+    Item_Index: 6
+    Item_Ad: 7
+    Puan: 1050
     SatinAlmaDurumu: 0
   - GrupIndex: 1
-    Item_Index: 4
-    Item_Ad: "\u015Eapka 5"
-    Puan: 5000
+    Item_Index: 7
+    Item_Ad: 8
+    Puan: 1200
+    SatinAlmaDurumu: 0
+  - GrupIndex: 1
+    Item_Index: 8
+    Item_Ad: 9
+    Puan: 1350
     SatinAlmaDurumu: 0
   - GrupIndex: 2
     Item_Index: 0
-    Item_Ad: Sopa 1
-    Puan: 500
-    SatinAlmaDurumu: 0
+    Item_Ad: 1
+    Puan: 200
+    SatinAlmaDurumu: 1
   - GrupIndex: 2
     Item_Index: 1
-    Item_Ad: Sopa 2
-    Puan: 750
+    Item_Ad: 2
+    Puan: 400
     SatinAlmaDurumu: 0
   - GrupIndex: 2
     Item_Index: 2
-    Item_Ad: Sopa 3
-    Puan: 1250
+    Item_Ad: 3
+    Puan: 600
     SatinAlmaDurumu: 0
   - GrupIndex: 2
     Item_Index: 3
-    Item_Ad: Sopa 4
-    Puan: 2000
+    Item_Ad: 4
+    Puan: 800
     SatinAlmaDurumu: 0
   - GrupIndex: 2
     Item_Index: 4
-    Item_Ad: Sopa 5
-    Puan: 2500
-    SatinAlmaDurumu: 0
-  - GrupIndex: 2
-    Item_Index: 5
-    Item_Ad: Sopa 6
-    Puan: 3250
-    SatinAlmaDurumu: 0
-  - GrupIndex: 2
-    Item_Index: 6
-    Item_Ad: Sopa 7
-    Puan: 4000
-    SatinAlmaDurumu: 0
-  - GrupIndex: 2
-    Item_Index: 7
-    Item_Ad: Sopa 8
-    Puan: 5000
-    SatinAlmaDurumu: 0
-  - GrupIndex: 2
-    Item_Index: 8
-    Item_Ad: Sopa 9
-    Puan: 7000
-    SatinAlmaDurumu: 0
-  - GrupIndex: 3
-    Item_Index: 0
-    Item_Ad: Tema 1
+    Item_Ad: 5
     Puan: 1000
-    SatinAlmaDurumu: 0
-  - GrupIndex: 3
-    Item_Index: 1
-    Item_Ad: Tema 2
-    Puan: 2000
-    SatinAlmaDurumu: 0
-  - GrupIndex: 3
-    Item_Index: 2
-    Item_Ad: Tema 3
-    Puan: 3000
-    SatinAlmaDurumu: 0
-  - GrupIndex: 3
-    Item_Index: 3
-    Item_Ad: Tema 4
-    Puan: 4000
-    SatinAlmaDurumu: 0
-  - GrupIndex: 3
-    Item_Index: 4
-    Item_Ad: Tema 5
-    Puan: 5000
-    SatinAlmaDurumu: 0
-  - GrupIndex: 3
-    Item_Index: 5
-    Item_Ad: Tema 6
-    Puan: 6000
-    SatinAlmaDurumu: 0
-  - GrupIndex: 3
-    Item_Index: 6
-    Item_Ad: Tema 7
-    Puan: 7000
-    SatinAlmaDurumu: 0
-  - GrupIndex: 3
-    Item_Index: 7
-    Item_Ad: Tema 8
-    Puan: 8000
-    SatinAlmaDurumu: 0
-  - GrupIndex: 3
-    Item_Index: 8
-    Item_Ad: Tema 9
-    Puan: 9000
     SatinAlmaDurumu: 0
   _DilVerileriAnaObje: []
   TextObjeleri:
@@ -1293,6 +1274,85 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!1 &235613816
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 235613817}
+  - component: {fileID: 235613819}
+  - component: {fileID: 235613818}
+  m_Layer: 5
+  m_Name: Text (Legacy) (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &235613817
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 235613816}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 745538439}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 1.1313477, y: 1.5413818}
+  m_SizeDelta: {x: -56.9686, y: -38.1764}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &235613818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 235613816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.011326156, g: 0.6431373, b: 0, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 14
+    m_FontStyle: 0
+    m_BestFit: 1
+    m_MinSize: 10
+    m_MaxSize: 90
+    m_Alignment: 4
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: Kaydedildi
+--- !u!222 &235613819
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 235613816}
+  m_CullTransparentMesh: 1
 --- !u!4 &244163099 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 7e81ba96517cdac4bbabeeb42cb3e989, type: 3}
@@ -1315,7 +1375,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &257549569
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1447,7 +1507,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: TEMA
+  m_Text: 
 --- !u!222 &309383967
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1473,7 +1533,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &346248815
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2092,7 +2152,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: SOPA
+  m_Text: 
 --- !u!222 &548667623
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2372,7 +2432,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 700806217}
   m_OnClick:
     m_PersistentCalls:
@@ -2666,6 +2726,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1210985955}
+  - {fileID: 235613817}
   m_Father: {fileID: 447474716}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2748,7 +2809,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 0
+  m_Text: 10000
 --- !u!222 &799741115
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2836,6 +2897,85 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 807448181}
   m_CullTransparentMesh: 1
+--- !u!1 &822078030
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 822078031}
+  - component: {fileID: 822078032}
+  - component: {fileID: 822078033}
+  m_Layer: 5
+  m_Name: Item_Text (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &822078031
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 822078030}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1850681739}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -1.5279541, y: 3.899414}
+  m_SizeDelta: {x: -456.69687, y: -36.440804}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &822078032
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 822078030}
+  m_CullTransparentMesh: 1
+--- !u!114 &822078033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 822078030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 50
+    m_FontStyle: 0
+    m_BestFit: 1
+    m_MinSize: 0
+    m_MaxSize: 80
+    m_Alignment: 4
+    m_AlignByGeometry: 0
+    m_RichText: 1
+    m_HorizontalOverflow: 0
+    m_VerticalOverflow: 0
+    m_LineSpacing: 1
+  m_Text: '-'
 --- !u!4 &824109185 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a7aa217580d0a0d4d944c4c37b9c33b9, type: 3}
@@ -2919,7 +3059,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 841879289}
   m_OnClick:
     m_PersistentCalls:
@@ -3648,7 +3788,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: SATIN AL
+  m_Text: 
 --- !u!222 &1106828573
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4177,7 +4317,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1210985955
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5146,7 +5286,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1660360163
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5380,6 +5520,7 @@ RectTransform:
   - {fileID: 1591370136}
   - {fileID: 353821798}
   - {fileID: 1047352052}
+  - {fileID: 822078031}
   m_Father: {fileID: 447474716}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}

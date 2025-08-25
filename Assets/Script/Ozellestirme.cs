@@ -33,6 +33,8 @@ public class Ozellestirme : MonoBehaviour
     public Button[] MateryalButonlari;
     public Text MaterialText;
     public SkinnedMeshRenderer _Renderer;
+    [Header("----------------------------LEGACY")]
+    public Text LegacyItemText; // Güncel seçili item'i gösterir
 
 
     int SapkaIndex = -1;
@@ -61,6 +63,34 @@ public class Ozellestirme : MonoBehaviour
         _VeriYonetim.Load();
         _ItemBilgileri = _VeriYonetim.ListeyiAktar();
 
+        // ✅ KRİTİK GÜVENLİK KONTROLÜ
+        if (_ItemBilgileri == null || _ItemBilgileri.Count < 19)
+        {
+            Debug.LogError($"❌ UYARI: ItemBilgileri yetersiz! Count: {(_ItemBilgileri?.Count ?? 0)}. Minimum 19 gerekli.");
+            Debug.LogError("Gereksinimler: 5 Şapka (0-4) + 9 Sopa (5-13) + 5 Material (14-18) = 19 item");
+            
+            // Güvenlik için boş list oluştur
+            if (_ItemBilgileri == null)
+                _ItemBilgileri = new List<ItemBilgileri>();
+        }
+        
+        // ✅ EXTRA: Veri geçerliliğini kontrol et
+        if (!_VeriYonetim.VeriGeçerliliğiKontrolEt())
+        {
+            Debug.LogError("❌ Veri geçerliliği kontrolü başarısız! Varsayılan veriler yeniden oluşturuluyor.");
+            
+            // Veri bozuksa yeniden oluştur ve yükle
+            _VeriYonetim.VarsayilanItemVerileriOlustur();
+            _ItemBilgileri = _VeriYonetim.ListeyiAktar();
+            
+            // Tüm active index'leri sıfırla (güvenlik için)
+            _BellekYonetim.VeriKaydet_int("AktifSapka", -1);
+            _BellekYonetim.VeriKaydet_int("AktifSopa", -1);
+            _BellekYonetim.VeriKaydet_int("AktifTema", -1);
+            
+            Debug.Log("✅ Varsayılan veriler yeniden oluşturuldu ve active durumlar sıfırlandı.");
+        }
+
         //_BellekYonetim.VeriKaydet_int("Puan", 10000);
 
         // Debug bilgileri - array boyutlarını kontrol et
@@ -85,6 +115,9 @@ public class Ozellestirme : MonoBehaviour
         _DilOkunanVeriler = _VeriYonetim.DilVerileriListeyiAktar();
         _DilVerileriAnaObje.Add(_DilOkunanVeriler[1]);
         DilTercihiYonetimi();
+        
+        // Legacy text'i başlangıçta güncelle
+        LegacyItemTextGuncelle();
     }
     void DilTercihiYonetimi()
     {
@@ -119,6 +152,44 @@ public class Ozellestirme : MonoBehaviour
 
         }
     }
+    
+    // Legacy text'i güncel seçili item'a göre günceller
+    void LegacyItemTextGuncelle()
+    {
+        if (LegacyItemText == null) return;
+        
+        string legacyText = "";
+        
+        // Şu anda hangi panel aktif?
+        if (AktifislemPaneliIndex == 0) // Şapka paneli
+        {
+            if (SapkaIndex >= 0)
+                legacyText = (SapkaIndex + 1).ToString();
+            else
+                legacyText = "-";
+        }
+        else if (AktifislemPaneliIndex == 1) // Sopa paneli
+        {
+            if (SopaIndex >= 0)
+                legacyText = (SopaIndex + 1).ToString();
+            else
+                legacyText = "-";
+        }
+        else if (AktifislemPaneliIndex == 2) // Material paneli
+        {
+            if (MaterialIndex >= 0)
+                legacyText = (MaterialIndex + 1).ToString();
+            else
+                legacyText = "-";
+        }
+        else
+        {
+            legacyText = "-";
+        }
+        
+        LegacyItemText.text = legacyText;
+    }
+    
     void DurumuKontrolEt(int Bolum, bool islem = false)
     {
         if (Bolum == 0)
@@ -138,7 +209,7 @@ public class Ozellestirme : MonoBehaviour
                 if (!islem)
                 {
                     SapkaIndex = -1;
-                    SapkaText.text = ItemText;
+                    SapkaText.text = "0";
                 }
             }
             else
@@ -158,7 +229,8 @@ public class Ozellestirme : MonoBehaviour
                     // İkinci güvenlik kontrolü: ItemBilgileri array'i için
                     if (SapkaIndex >= 0 && SapkaIndex < _ItemBilgileri.Count)
                     {
-                        SapkaText.text = _ItemBilgileri[SapkaIndex].Item_Ad;
+                        // Basit numara gösterimi
+                        SapkaText.text = (SapkaIndex + 1).ToString();
                     }
                     else
                     {
@@ -176,7 +248,7 @@ public class Ozellestirme : MonoBehaviour
                     // Hatalı index durumunda sıfırla
                     _BellekYonetim.VeriKaydet_int("AktifSapka", -1);
                     SapkaIndex = -1;
-                    SapkaText.text = ItemText;
+                    SapkaText.text = "0";
                     TextObjeleri[5].text = SatinAlmaText;
                     islemButonlari[0].interactable = false;
                     islemButonlari[1].interactable = false;
@@ -200,7 +272,11 @@ public class Ozellestirme : MonoBehaviour
                 if (!islem)
                 {
                     SopaIndex = -1;
-                    SopaText.text = ItemText;
+                    SopaText.text = "0";
+                }
+                else
+                {
+                    SopaText.text = "0";
                 }
             }
             else
@@ -221,7 +297,8 @@ public class Ozellestirme : MonoBehaviour
                     int itemIndex = SopaIndex + 5;
                     if (itemIndex >= 0 && itemIndex < _ItemBilgileri.Count)
                     {
-                        SopaText.text = _ItemBilgileri[itemIndex].Item_Ad;
+                        // Basit numara gösterimi
+                        SopaText.text = (SopaIndex + 1).ToString();
                     }
                     else
                     {
@@ -239,7 +316,7 @@ public class Ozellestirme : MonoBehaviour
                     // Hatalı index durumunda sıfırla
                     _BellekYonetim.VeriKaydet_int("AktifSopa", -1);
                     SopaIndex = -1;
-                    SopaText.text = ItemText;
+                    SopaText.text = "0";
                     TextObjeleri[5].text = SatinAlmaText;
                     islemButonlari[0].interactable = false;
                     islemButonlari[1].interactable = false;
@@ -255,7 +332,7 @@ public class Ozellestirme : MonoBehaviour
                 {
                     TextObjeleri[5].text = SatinAlmaText;
                     MaterialIndex = -1;
-                    MaterialText.text = ItemText;
+                    MaterialText.text = "0";
                     islemButonlari[0].interactable = false;
                     islemButonlari[1].interactable = false;
                 }
@@ -264,6 +341,7 @@ public class Ozellestirme : MonoBehaviour
                     Material[] mats = _Renderer.materials;
                     mats[0] = VarsayilanTema;
                     _Renderer.materials = mats;
+                    MaterialText.text = "0";
                     TextObjeleri[5].text = SatinAlmaText;
                 }
             }
@@ -282,7 +360,8 @@ public class Ozellestirme : MonoBehaviour
                     int itemIndex = MaterialIndex + 14;
                     if (itemIndex >= 0 && itemIndex < _ItemBilgileri.Count)
                     {
-                        MaterialText.text = _ItemBilgileri[itemIndex].Item_Ad;
+                        // Basit numara gösterimi
+                        MaterialText.text = (MaterialIndex + 1).ToString();
                     }
                     else
                     {
@@ -303,13 +382,16 @@ public class Ozellestirme : MonoBehaviour
                     Material[] mats = _Renderer.materials;
                     mats[0] = VarsayilanTema;
                     _Renderer.materials = mats;
-                    MaterialText.text = ItemText;
+                    MaterialText.text = "0";
                     TextObjeleri[5].text = SatinAlmaText;
                     islemButonlari[0].interactable = false;
                     islemButonlari[1].interactable = false;
                 }
             }
         }
+        
+        // Durum kontrol edildiğinde legacy text'i güncelle
+        LegacyItemTextGuncelle();
     }
     public void SatinAl()
     {
@@ -360,51 +442,82 @@ public class Ozellestirme : MonoBehaviour
             if (SapkaIndex == -1)
             {
                 SapkaIndex = 0;
-                Sapkalar[SapkaIndex].SetActive(true);
-                SapkaText.text = _ItemBilgileri[SapkaIndex].Item_Ad;
-
-                if (!_ItemBilgileri[SapkaIndex].SatinAlmaDurumu)
+                
+                // Legacy text'i güncelle
+                LegacyItemTextGuncelle();
+                // Güvenlik kontrolü: İlk şapka erişimi
+                if (SapkaIndex < Sapkalar.Length && SapkaIndex < _ItemBilgileri.Count)
                 {
-                    TextObjeleri[5].text = _ItemBilgileri[SapkaIndex].Puan + " - " + SatinAlmaText;
-                    islemButonlari[1].interactable = false;
+                    Sapkalar[SapkaIndex].SetActive(true);
+                    
+                    // Basit numara gösterimi
+                    SapkaText.text = (SapkaIndex + 1).ToString();
 
-                    if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SapkaIndex].Puan)
-                        islemButonlari[0].interactable = false;
+                    // Debug: İlk şapka durumu (Index 0 problemi için)
+                    Debug.Log($"🎩 İLK Şapka Index {SapkaIndex}: SatinAlmaDurumu = {_ItemBilgileri[SapkaIndex].SatinAlmaDurumu}, Puan = {_ItemBilgileri[SapkaIndex].Puan}");
+
+                    if (!_ItemBilgileri[SapkaIndex].SatinAlmaDurumu)
+                    {
+                        TextObjeleri[5].text = _ItemBilgileri[SapkaIndex].Puan + " - " + SatinAlmaText;
+                        islemButonlari[1].interactable = false;
+
+                        if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SapkaIndex].Puan)
+                            islemButonlari[0].interactable = false;
+                        else
+                            islemButonlari[0].interactable = true;
+                    }
                     else
-                        islemButonlari[0].interactable = true;
-
+                    {
+                        TextObjeleri[5].text = SatinAlmaText;
+                        islemButonlari[0].interactable = false;
+                        islemButonlari[1].interactable = true;
+                    }
                 }
                 else
                 {
-                    TextObjeleri[5].text = SatinAlmaText;
-                    islemButonlari[0].interactable = false;
-                    islemButonlari[1].interactable = true;
+                    Debug.LogError($"İlk şapka erişiminde hata: Sapkalar.Length={Sapkalar.Length}, ItemBilgileri.Count={_ItemBilgileri.Count}");
+                    SapkaIndex = -1;
                 }
             }
             else
             {
                 Sapkalar[SapkaIndex].SetActive(false);
                 SapkaIndex++;
-                Sapkalar[SapkaIndex].SetActive(true);
-                SapkaText.text = _ItemBilgileri[SapkaIndex].Item_Ad;
-
-                if (!_ItemBilgileri[SapkaIndex].SatinAlmaDurumu)
+                
+                // Legacy text'i güncelle
+                LegacyItemTextGuncelle();
+                // Güvenlik kontrolü: SapkaIndex sınırlar içinde mi?
+                if (SapkaIndex >= 0 && SapkaIndex < Sapkalar.Length && SapkaIndex < _ItemBilgileri.Count)
                 {
-                    TextObjeleri[5].text = _ItemBilgileri[SapkaIndex].Puan + " - " + SatinAlmaText;
-                    islemButonlari[1].interactable = false;
+                    Sapkalar[SapkaIndex].SetActive(true);
+                    
+                    // Basit numara gösterimi
+                    SapkaText.text = (SapkaIndex + 1).ToString();
 
-                    if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SapkaIndex].Puan)
-                        islemButonlari[0].interactable = false;
+                    if (!_ItemBilgileri[SapkaIndex].SatinAlmaDurumu)
+                    {
+                        TextObjeleri[5].text = _ItemBilgileri[SapkaIndex].Puan + " - " + SatinAlmaText;
+                        islemButonlari[1].interactable = false;
+
+                        if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SapkaIndex].Puan)
+                            islemButonlari[0].interactable = false;
+                        else
+                            islemButonlari[0].interactable = true;
+                    }
                     else
-                        islemButonlari[0].interactable = true;
-
-
+                    {
+                        TextObjeleri[5].text = SatinAlmaText;
+                        islemButonlari[0].interactable = false;
+                        islemButonlari[1].interactable = true;
+                    }
                 }
                 else
                 {
-                    TextObjeleri[5].text = SatinAlmaText;
-                    islemButonlari[0].interactable = false;
-                    islemButonlari[1].interactable = true;
+                    // Sınırların dışına çıkıldığında bir önceki geçerli index'e geri dön
+                    SapkaIndex--;
+                    // Legacy text'i güncelle
+                    LegacyItemTextGuncelle();
+                    Debug.LogWarning($"Sapka index sınırları aştı: {SapkaIndex + 1}. Maksimum: {Math.Min(Sapkalar.Length, _ItemBilgileri.Count) - 1}");
                 }
             }
 
@@ -424,34 +537,50 @@ public class Ozellestirme : MonoBehaviour
             {
                 Sapkalar[SapkaIndex].SetActive(false);
                 SapkaIndex--;
+                // Legacy text'i güncelle
+                LegacyItemTextGuncelle();
                 if (SapkaIndex != -1)
                 {
-                    Sapkalar[SapkaIndex].SetActive(true);
-                    SapkaButonlari[0].interactable = true;
-                    SapkaText.text = _ItemBilgileri[SapkaIndex].Item_Ad;
-
-                    if (!_ItemBilgileri[SapkaIndex].SatinAlmaDurumu)
+                    // Güvenlik kontrolü: SapkaIndex sınırlar içinde mi?
+                    if (SapkaIndex >= 0 && SapkaIndex < Sapkalar.Length && SapkaIndex < _ItemBilgileri.Count)
                     {
-                        TextObjeleri[5].text = _ItemBilgileri[SapkaIndex].Puan + " - " + SatinAlmaText;
-                        islemButonlari[1].interactable = false;
+                        Sapkalar[SapkaIndex].SetActive(true);
+                        SapkaButonlari[0].interactable = true;
+                        
+                        // Basit numara gösterimi
+                        SapkaText.text = (SapkaIndex + 1).ToString();
 
-                        if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SapkaIndex].Puan)
-                            islemButonlari[0].interactable = false;
+                        if (!_ItemBilgileri[SapkaIndex].SatinAlmaDurumu)
+                        {
+                            TextObjeleri[5].text = _ItemBilgileri[SapkaIndex].Puan + " - " + SatinAlmaText;
+                            islemButonlari[1].interactable = false;
+
+                            if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SapkaIndex].Puan)
+                                islemButonlari[0].interactable = false;
+                            else
+                                islemButonlari[0].interactable = true;
+                        }
                         else
-                            islemButonlari[0].interactable = true;
-
+                        {
+                            TextObjeleri[5].text = SatinAlmaText;
+                            islemButonlari[0].interactable = false;
+                            islemButonlari[1].interactable = true;
+                        }
                     }
                     else
                     {
+                        Debug.LogError($"Geri yönde şapka index hatası: {SapkaIndex}. Sapkalar.Length={Sapkalar.Length}, ItemBilgileri.Count={_ItemBilgileri.Count}");
+                        SapkaIndex = -1;
+                        SapkaButonlari[0].interactable = false;
+                        SapkaText.text = "0";
                         TextObjeleri[5].text = SatinAlmaText;
                         islemButonlari[0].interactable = false;
-                        islemButonlari[1].interactable = true;
                     }
                 }
                 else
                 {
                     SapkaButonlari[0].interactable = false;
-                    SapkaText.text = ItemText;
+                    SapkaText.text = "0";
                     TextObjeleri[5].text = SatinAlmaText;
                     islemButonlari[0].interactable = false;
                 }
@@ -460,13 +589,16 @@ public class Ozellestirme : MonoBehaviour
             else
             {
                 SapkaButonlari[0].interactable = false;
-                SapkaText.text = ItemText;
+                SapkaText.text = "0";
                 TextObjeleri[5].text = SatinAlmaText;
                 islemButonlari[0].interactable = false;
             }
             //-----------------------------------------------------
             if (SapkaIndex != Sapkalar.Length - 1)
                 SapkaButonlari[1].interactable = true;
+                
+            // Legacy text'i güncelle
+            LegacyItemTextGuncelle();
         }
     }
     public void Sopa_Yonbutonlari(string islem)
@@ -477,48 +609,81 @@ public class Ozellestirme : MonoBehaviour
             if (SopaIndex == -1)
             {
                 SopaIndex = 0;
-                Sopalar[SopaIndex].SetActive(true);
-                SopaText.text = _ItemBilgileri[SopaIndex + 5].Item_Ad;
-
-                if (!_ItemBilgileri[SopaIndex + 5].SatinAlmaDurumu)
+                
+                // Legacy text'i güncelle
+                LegacyItemTextGuncelle();
+                // Güvenlik kontrolü: İlk sopa erişimi
+                if (SopaIndex < Sopalar.Length && (SopaIndex + 5) < _ItemBilgileri.Count)
                 {
-                    TextObjeleri[5].text = _ItemBilgileri[SopaIndex + 5].Puan + " - " + SatinAlmaText;
+                    Sopalar[SopaIndex].SetActive(true);
+                    
+                    // Basit numara gösterimi
+                    SopaText.text = (SopaIndex + 1).ToString();
 
-                    islemButonlari[1].interactable = false;
-                    if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SopaIndex + 5].Puan)
-                        islemButonlari[0].interactable = false;
+                    // Debug: İlk sopa durumu (Index 0 problemi için)
+                    Debug.Log($"⚔️ İLK Sopa Index {SopaIndex} (ItemIndex {SopaIndex + 5}): SatinAlmaDurumu = {_ItemBilgileri[SopaIndex + 5].SatinAlmaDurumu}, Puan = {_ItemBilgileri[SopaIndex + 5].Puan}");
+
+                    if (!_ItemBilgileri[SopaIndex + 5].SatinAlmaDurumu)
+                    {
+                        TextObjeleri[5].text = _ItemBilgileri[SopaIndex + 5].Puan + " - " + SatinAlmaText;
+
+                        islemButonlari[1].interactable = false;
+                        if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SopaIndex + 5].Puan)
+                            islemButonlari[0].interactable = false;
+                        else
+                            islemButonlari[0].interactable = true;
+                    }
                     else
-                        islemButonlari[0].interactable = true;
-
+                    {
+                        TextObjeleri[5].text = SatinAlmaText;
+                        islemButonlari[0].interactable = false;
+                        islemButonlari[1].interactable = true;
+                    }
                 }
                 else
                 {
-                    TextObjeleri[5].text = SatinAlmaText;
-                    islemButonlari[0].interactable = false;
-                    islemButonlari[1].interactable = true;
+                    Debug.LogError($"İlk sopa erişiminde hata: Sopalar.Length={Sopalar.Length}, ItemBilgileri.Count={_ItemBilgileri.Count}");
+                    SopaIndex = -1;
                 }
             }
             else
             {
                 Sopalar[SopaIndex].SetActive(false);
                 SopaIndex++;
-                Sopalar[SopaIndex].SetActive(true);
-                SopaText.text = _ItemBilgileri[SopaIndex + 5].Item_Ad;
-
-                if (!_ItemBilgileri[SopaIndex + 5].SatinAlmaDurumu)
+                
+                // Legacy text'i güncelle
+                LegacyItemTextGuncelle();
+                // Güvenlik kontrolü: SopaIndex sınırlar içinde mi?
+                if (SopaIndex >= 0 && SopaIndex < Sopalar.Length && (SopaIndex + 5) < _ItemBilgileri.Count)
                 {
-                    TextObjeleri[5].text = _ItemBilgileri[SopaIndex + 5].Puan + " - " + SatinAlmaText;
-                    islemButonlari[1].interactable = false;
-                    if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SopaIndex + 5].Puan)
-                        islemButonlari[0].interactable = false;
+                    Sopalar[SopaIndex].SetActive(true);
+                    
+                    // Basit numara gösterimi
+                    SopaText.text = (SopaIndex + 1).ToString();
+
+                    if (!_ItemBilgileri[SopaIndex + 5].SatinAlmaDurumu)
+                    {
+                        TextObjeleri[5].text = _ItemBilgileri[SopaIndex + 5].Puan + " - " + SatinAlmaText;
+                        islemButonlari[1].interactable = false;
+                        if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SopaIndex + 5].Puan)
+                            islemButonlari[0].interactable = false;
+                        else
+                            islemButonlari[0].interactable = true;
+                    }
                     else
-                        islemButonlari[0].interactable = true;
+                    {
+                        TextObjeleri[5].text = SatinAlmaText;
+                        islemButonlari[0].interactable = false;
+                        islemButonlari[1].interactable = true;
+                    }
                 }
                 else
                 {
-                    TextObjeleri[5].text = SatinAlmaText;
-                    islemButonlari[0].interactable = false;
-                    islemButonlari[1].interactable = true;
+                    // Sınırların dışına çıkıldığında bir önceki geçerli index'e geri dön
+                    SopaIndex--;
+                    // Legacy text'i güncelle
+                    LegacyItemTextGuncelle();
+                    Debug.LogWarning($"Sopa index sınırları aştı: {SopaIndex + 1}. Maksimum sopa: {Sopalar.Length - 1}, Maksimum item: {(_ItemBilgileri.Count - 6)}");
                 }
             }
 
@@ -540,32 +705,49 @@ public class Ozellestirme : MonoBehaviour
             {
                 Sopalar[SopaIndex].SetActive(false);
                 SopaIndex--;
+                // Legacy text'i güncelle
+                LegacyItemTextGuncelle();
                 if (SopaIndex != -1)
                 {
-                    Sopalar[SopaIndex].SetActive(true);
-                    SopaButonlari[0].interactable = true;
-                    SopaText.text = _ItemBilgileri[SopaIndex + 5].Item_Ad;
-
-                    if (!_ItemBilgileri[SopaIndex + 5].SatinAlmaDurumu)
+                    // Güvenlik kontrolü: SopaIndex sınırlar içinde mi?
+                    if (SopaIndex >= 0 && SopaIndex < Sopalar.Length && (SopaIndex + 5) < _ItemBilgileri.Count)
                     {
-                        TextObjeleri[5].text = _ItemBilgileri[SopaIndex + 5].Puan + " - " + SatinAlmaText;
-                        islemButonlari[1].interactable = false;
-                        if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SopaIndex + 5].Puan)
-                            islemButonlari[0].interactable = false;
+                        Sopalar[SopaIndex].SetActive(true);
+                        SopaButonlari[0].interactable = true;
+                        
+                        // Basit numara gösterimi
+                        SopaText.text = (SopaIndex + 1).ToString();
+
+                        if (!_ItemBilgileri[SopaIndex + 5].SatinAlmaDurumu)
+                        {
+                            TextObjeleri[5].text = _ItemBilgileri[SopaIndex + 5].Puan + " - " + SatinAlmaText;
+                            islemButonlari[1].interactable = false;
+                            if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[SopaIndex + 5].Puan)
+                                islemButonlari[0].interactable = false;
+                            else
+                                islemButonlari[0].interactable = true;
+                        }
                         else
-                            islemButonlari[0].interactable = true;
+                        {
+                            TextObjeleri[5].text = SatinAlmaText;
+                            islemButonlari[0].interactable = false;
+                            islemButonlari[1].interactable = true;
+                        }
                     }
                     else
                     {
+                        Debug.LogError($"Geri yönde sopa index hatası: {SopaIndex}. Sopalar.Length={Sopalar.Length}, ItemBilgileri gerekli index={SopaIndex + 5}, Count={_ItemBilgileri.Count}");
+                        SopaIndex = -1;
+                        SopaButonlari[0].interactable = false;
+                        SopaText.text = "0";
                         TextObjeleri[5].text = SatinAlmaText;
                         islemButonlari[0].interactable = false;
-                        islemButonlari[1].interactable = true;
                     }
                 }
                 else
                 {
                     SopaButonlari[0].interactable = false;
-                    SopaText.text = ItemText;
+                    SopaText.text = "0";
                     TextObjeleri[5].text = SatinAlmaText;
                     islemButonlari[0].interactable = false;
                 }
@@ -574,11 +756,14 @@ public class Ozellestirme : MonoBehaviour
             else
             {
                 SopaButonlari[0].interactable = false;
-                SopaText.text = ItemText;
+                SopaText.text = "0";
             }
             //-----------------------------------------------------
             if (SopaIndex != Sopalar.Length - 1)
                 SopaButonlari[1].interactable = true;
+                
+            // Legacy text'i güncelle
+            LegacyItemTextGuncelle();
         }
     }
     public void Material_Yonbutonlari(string islem)
@@ -589,74 +774,18 @@ public class Ozellestirme : MonoBehaviour
             if (MaterialIndex == -1)
             {
                 MaterialIndex = 0;
-                Material[] mats = _Renderer.materials;
-                mats[0] = Materyaller[MaterialIndex];
-                _Renderer.materials = mats;
-                MaterialText.text = _ItemBilgileri[MaterialIndex + 14].Item_Ad;
-
-                if (!_ItemBilgileri[MaterialIndex + 14].SatinAlmaDurumu)
-                {
-                    TextObjeleri[5].text = _ItemBilgileri[MaterialIndex + 14].Puan + " - " + SatinAlmaText;
-                    islemButonlari[1].interactable = false;
-                    if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[MaterialIndex + 14].Puan)
-                        islemButonlari[0].interactable = false;
-                    else
-                        islemButonlari[0].interactable = true;
-                }
-                else
-                {
-                    TextObjeleri[5].text = SatinAlmaText;
-                    islemButonlari[0].interactable = false;
-                    islemButonlari[1].interactable = true;
-                }
-            }
-            else
-            {
-                MaterialIndex++;
-                Material[] mats = _Renderer.materials;
-                mats[0] = Materyaller[MaterialIndex];
-                _Renderer.materials = mats;
-                MaterialText.text = _ItemBilgileri[MaterialIndex + 14].Item_Ad;
-
-                if (!_ItemBilgileri[MaterialIndex + 14].SatinAlmaDurumu)
-                {
-                    TextObjeleri[5].text = _ItemBilgileri[MaterialIndex + 14].Puan + " - " + SatinAlmaText;
-                    islemButonlari[1].interactable = false;
-                    if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[MaterialIndex + 14].Puan)
-                        islemButonlari[0].interactable = false;
-                    else
-                        islemButonlari[0].interactable = true;
-                }
-                else
-                {
-                    TextObjeleri[5].text = SatinAlmaText;
-                    islemButonlari[0].interactable = false;
-                    islemButonlari[1].interactable = true;
-                }
-            }
-            //-----------------------------------------------------
-
-
-            if (MaterialIndex == Materyaller.Length - 1)
-                MateryalButonlari[1].interactable = false;
-            else
-                MateryalButonlari[1].interactable = true;
-
-            if (MaterialIndex != -1)
-                MateryalButonlari[0].interactable = true;
-        }
-        else
-        {
-            if (MaterialIndex != -1)
-            {
-                MaterialIndex--;
-                if (MaterialIndex != -1)
+                
+                // Legacy text'i güncelle
+                LegacyItemTextGuncelle();
+                // Güvenlik kontrolü: İlk material erişimi
+                if (MaterialIndex < Materyaller.Length && (MaterialIndex + 14) < _ItemBilgileri.Count)
                 {
                     Material[] mats = _Renderer.materials;
                     mats[0] = Materyaller[MaterialIndex];
                     _Renderer.materials = mats;
-                    MateryalButonlari[0].interactable = true;
-                    MaterialText.text = _ItemBilgileri[MaterialIndex + 14].Item_Ad;
+                    
+                    // Basit numara gösterimi
+                    MaterialText.text = (MaterialIndex + 1).ToString();
 
                     if (!_ItemBilgileri[MaterialIndex + 14].SatinAlmaDurumu)
                     {
@@ -676,11 +805,118 @@ public class Ozellestirme : MonoBehaviour
                 }
                 else
                 {
+                    Debug.LogError($"İlk material erişiminde hata: Materyaller.Length={Materyaller.Length}, ItemBilgileri.Count={_ItemBilgileri.Count}");
+                    MaterialIndex = -1;
+                }
+            }
+            else
+            {
+                MaterialIndex++;
+                
+                // Legacy text'i güncelle
+                LegacyItemTextGuncelle();
+                // Güvenlik kontrolü: MaterialIndex sınırlar içinde mi?
+                if (MaterialIndex >= 0 && MaterialIndex < Materyaller.Length && (MaterialIndex + 14) < _ItemBilgileri.Count)
+                {
+                    Material[] mats = _Renderer.materials;
+                    mats[0] = Materyaller[MaterialIndex];
+                    _Renderer.materials = mats;
+                    
+                    // Basit numara gösterimi
+                    MaterialText.text = (MaterialIndex + 1).ToString();
+
+                    if (!_ItemBilgileri[MaterialIndex + 14].SatinAlmaDurumu)
+                    {
+                        TextObjeleri[5].text = _ItemBilgileri[MaterialIndex + 14].Puan + " - " + SatinAlmaText;
+                        islemButonlari[1].interactable = false;
+                        if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[MaterialIndex + 14].Puan)
+                            islemButonlari[0].interactable = false;
+                        else
+                            islemButonlari[0].interactable = true;
+                    }
+                    else
+                    {
+                        TextObjeleri[5].text = SatinAlmaText;
+                        islemButonlari[0].interactable = false;
+                        islemButonlari[1].interactable = true;
+                    }
+                }
+                else
+                {
+                    // Sınırların dışına çıkıldığında bir önceki geçerli index'e geri dön
+                    MaterialIndex--;
+                    // Legacy text'i güncelle
+                    LegacyItemTextGuncelle();
+                    Debug.LogWarning($"Material index sınırları aştı: {MaterialIndex + 1}. Maksimum material: {Materyaller.Length - 1}, Maksimum item: {(_ItemBilgileri.Count - 15)}");
+                }
+            }
+            //-----------------------------------------------------
+
+
+            if (MaterialIndex == Materyaller.Length - 1)
+                MateryalButonlari[1].interactable = false;
+            else
+                MateryalButonlari[1].interactable = true;
+
+            if (MaterialIndex != -1)
+                MateryalButonlari[0].interactable = true;
+        }
+        else
+        {
+            if (MaterialIndex != -1)
+            {
+                MaterialIndex--;
+                // Legacy text'i güncelle
+                LegacyItemTextGuncelle();
+                if (MaterialIndex != -1)
+                {
+                    // Güvenlik kontrolü: MaterialIndex sınırlar içinde mi?
+                    if (MaterialIndex >= 0 && MaterialIndex < Materyaller.Length && (MaterialIndex + 14) < _ItemBilgileri.Count)
+                    {
+                        Material[] mats = _Renderer.materials;
+                        mats[0] = Materyaller[MaterialIndex];
+                        _Renderer.materials = mats;
+                        MateryalButonlari[0].interactable = true;
+                        
+                        // Basit numara gösterimi
+                        MaterialText.text = (MaterialIndex + 1).ToString();
+
+                        if (!_ItemBilgileri[MaterialIndex + 14].SatinAlmaDurumu)
+                        {
+                            TextObjeleri[5].text = _ItemBilgileri[MaterialIndex + 14].Puan + " - " + SatinAlmaText;
+                            islemButonlari[1].interactable = false;
+                            if (_BellekYonetim.VeriOku_i("Puan") < _ItemBilgileri[MaterialIndex + 14].Puan)
+                                islemButonlari[0].interactable = false;
+                            else
+                                islemButonlari[0].interactable = true;
+                        }
+                        else
+                        {
+                            TextObjeleri[5].text = SatinAlmaText;
+                            islemButonlari[0].interactable = false;
+                            islemButonlari[1].interactable = true;
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError($"Geri yönde material index hatası: {MaterialIndex}. Materyaller.Length={Materyaller.Length}, ItemBilgileri gerekli index={MaterialIndex + 14}, Count={_ItemBilgileri.Count}");
+                        MaterialIndex = -1;
+                        Material[] mats = _Renderer.materials;
+                        mats[0] = VarsayilanTema;
+                        _Renderer.materials = mats;
+                        MateryalButonlari[0].interactable = false;
+                        MaterialText.text = "0";
+                        TextObjeleri[5].text = SatinAlmaText;
+                        islemButonlari[0].interactable = false;
+                    }
+                }
+                else
+                {
                     Material[] mats = _Renderer.materials;
                     mats[0] = VarsayilanTema;
                     _Renderer.materials = mats;
                     MateryalButonlari[0].interactable = false;
-                    MaterialText.text = ItemText;
+                    MaterialText.text = "0";
                     TextObjeleri[5].text = SatinAlmaText;
                     islemButonlari[0].interactable = false;
                 }
@@ -692,13 +928,16 @@ public class Ozellestirme : MonoBehaviour
                 mats[0] = VarsayilanTema;
                 _Renderer.materials = mats;
                 MateryalButonlari[0].interactable = false;
-                MaterialText.text = ItemText;
+                MaterialText.text = "0";
                 TextObjeleri[5].text = SatinAlmaText;
                 islemButonlari[0].interactable = false;
             }
             //-----------------------------------------------------
             if (MaterialIndex != Materyaller.Length - 1)
                 MateryalButonlari[1].interactable = true;
+                
+            // Legacy text'i güncelle
+            LegacyItemTextGuncelle();
         }
     }
     public void islemPaneliCikart(int Index)
@@ -710,17 +949,83 @@ public class Ozellestirme : MonoBehaviour
         islemPanelleri[Index].SetActive(true);
         GenelPaneller[1].SetActive(true);
         islemCanvasi.SetActive(false);
+        
+        // Panel değişince legacy text'i güncelle
+        LegacyItemTextGuncelle();
     }
     public void GeriDon()
     {
         Sesler[0].Play();
+        
+        // Kaydedildi animasyonunu sıfırla
+        if (Kaydedildi_Animator.GetBool("ok"))
+            Kaydedildi_Animator.SetBool("ok", false);
+        
         GenelPaneller[0].SetActive(false);
         islemCanvasi.SetActive(true);
         GenelPaneller[1].SetActive(false);
         islemPanelleri[AktifislemPaneliIndex].SetActive(false);
-        DurumuKontrolEt(AktifislemPaneliIndex, true);
+        
+        // Geri dönüldüğünde aktif item varsa "Kaydedildi" mesajı göster
+        GeriDondukteSonraDurumKontrol(AktifislemPaneliIndex);
+        
         AktifislemPaneliIndex = -1;
     }
+    
+    void GeriDondukteSonraDurumKontrol(int Bolum)
+    {
+        if (Bolum == 0) // Şapka
+        {
+            if (_BellekYonetim.VeriOku_i("AktifSapka") != -1)
+            {
+                // Aktif şapka varsa "Kaydedildi" mesajını göster
+                TextObjeleri[5].text = SatinAlmaText;
+            }
+            else
+            {
+                foreach (var item in Sapkalar)
+                {
+                    item.SetActive(false);
+                }
+                SapkaText.text = "0";
+                TextObjeleri[5].text = SatinAlmaText;
+            }
+        }
+        else if (Bolum == 1) // Sopa
+        {
+            if (_BellekYonetim.VeriOku_i("AktifSopa") != -1)
+            {
+                // Aktif sopa varsa "Kaydedildi" mesajını göster
+                TextObjeleri[5].text = SatinAlmaText;
+            }
+            else
+            {
+                foreach (var item in Sopalar)
+                {
+                    item.SetActive(false);
+                }
+                SopaText.text = "0";
+                TextObjeleri[5].text = SatinAlmaText;
+            }
+        }
+        else if (Bolum == 2) // Material
+        {
+            if (_BellekYonetim.VeriOku_i("AktifTema") != -1)
+            {
+                // Aktif tema varsa "Kaydedildi" mesajını göster
+                TextObjeleri[5].text = SatinAlmaText;
+            }
+            else
+            {
+                Material[] mats = _Renderer.materials;
+                mats[0] = VarsayilanTema;
+                _Renderer.materials = mats;
+                MaterialText.text = "0";
+                TextObjeleri[5].text = SatinAlmaText;
+            }
+        }
+    }
+    
     public void AnaMenuyeDon()
     {
         Sesler[0].Play();
@@ -743,5 +1048,73 @@ public class Ozellestirme : MonoBehaviour
         islemButonlari[1].interactable = false;
         if (!Kaydedildi_Animator.GetBool("ok"))
             Kaydedildi_Animator.SetBool("ok", true);
+    }
+    
+    // TÜM VERİLERİ VARSAYILAN HALINE SIFIRLA
+    [ContextMenu("Tüm Verileri Sıfırla")]
+    public void TumVerileriSifirla()
+    {
+        Debug.Log("🔄 TÜM VERİLER SIFIRLANIYOR...");
+        
+        // 1. Item verilerini sıfırla
+        _VeriYonetim.TumVerileriSifirla();
+        
+        // 2. Aktif seçimleri sıfırla
+        _BellekYonetim.VeriKaydet_int("AktifSapka", -1);
+        _BellekYonetim.VeriKaydet_int("AktifSopa", -1);
+        _BellekYonetim.VeriKaydet_int("AktifTema", -1);
+        
+        // 3. Diğer game state verilerini varsayılana çevir (opsiyonel)
+        _BellekYonetim.VeriKaydet_int("Puan", 10000); // Başlangıç puanı
+        
+        // 4. Item verilerini yeniden yükle
+        _VeriYonetim.Load();
+        _ItemBilgileri = _VeriYonetim.ListeyiAktar();
+        
+        // 5. UI'yi güncelle
+        SapkaIndex = -1;
+        SopaIndex = -1;
+        MaterialIndex = -1;
+        
+        // 6. Durumları yeniden kontrol et
+        DurumuKontrolEt(0, true);
+        DurumuKontrolEt(1, true);
+        DurumuKontrolEt(2, true);
+        
+        // 7. Legacy text'i güncelle
+        LegacyItemTextGuncelle();
+        
+        // 8. Puan text'ini güncelle
+        PuanText.text = _BellekYonetim.VeriOku_i("Puan").ToString();
+        
+        Debug.Log("✅ TÜM VERİLER BAŞARILI ŞEKİLDE SIFIRLANDI!");
+        Debug.Log("📋 Yeni durum: Tüm index'ler -1, İlk itemler ücretsiz, 10000 puan");
+    }
+    
+    // Sadece aktif seçimleri sıfırla (item verileri korunur)
+    [ContextMenu("Aktif Seçimleri Sıfırla")]
+    public void AktifSecimleriSifirla()
+    {
+        Debug.Log("🔄 AKTİF SEÇİMLER SIFIRLANIYOR...");
+        
+        // Aktif seçimleri sıfırla
+        _BellekYonetim.VeriKaydet_int("AktifSapka", -1);
+        _BellekYonetim.VeriKaydet_int("AktifSopa", -1);
+        _BellekYonetim.VeriKaydet_int("AktifTema", -1);
+        
+        // UI'yi güncelle
+        SapkaIndex = -1;
+        SopaIndex = -1;
+        MaterialIndex = -1;
+        
+        // Durumları yeniden kontrol et
+        DurumuKontrolEt(0, true);
+        DurumuKontrolEt(1, true);
+        DurumuKontrolEt(2, true);
+        
+        // Legacy text'i güncelle
+        LegacyItemTextGuncelle();
+        
+        Debug.Log("✅ AKTİF SEÇİMLER SIFIRLANDI! Artık hiçbir item seçili değil.");
     }
 }
