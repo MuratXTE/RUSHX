@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using TMPro;
+using Murat;
 
 public class EnemyArmy : MonoBehaviour
 {
@@ -29,8 +30,13 @@ public class EnemyArmy : MonoBehaviour
     [Header("Effects")]
     public GameObject combatParticleEffect;
     
+    [Header("UI References")]
+    [Tooltip("Game Lost UI object to enable when player loses")]
+    public GameObject gameLostUI;
+    
     protected List<Transform> enemySoldiers = new List<Transform>();
     private bool isInCombat = false;
+    private bool isPlayerDefeated = false; // Flag to prevent further combat after defeat
     protected ArmyManager playerArmy;
     
     void Start()
@@ -48,7 +54,7 @@ public class EnemyArmy : MonoBehaviour
     
     void Update()
     {
-        if (!isInCombat && playerArmy != null)
+        if (!isInCombat && !isPlayerDefeated && playerArmy != null)
         {
             CheckForCombat();
         }
@@ -231,6 +237,14 @@ public class EnemyArmy : MonoBehaviour
         // Combat finished
         isInCombat = false;
         
+        // Check if player was defeated
+        if (playerArmy != null && playerArmy.GetArmySize() == 0)
+        {
+            Debug.Log("Player defeated by enemy army! Starting defeat sequence...");
+            yield return StartCoroutine(HandlePlayerDefeat());
+            yield break; // Don't resume movement if player is defeated
+        }
+        
         // Resume player movement and input
         PlayerController playerController = playerArmy.player.GetComponent<PlayerController>();
         if (playerController != null)
@@ -333,9 +347,17 @@ public class EnemyArmy : MonoBehaviour
             {
                 if (pair.isPlayerInvolved)
                 {
-                    // Player dies - handle game over or respawn logic
-                    Debug.Log("Player died in combat!");
+                    // Player character dies - this is critical, need to handle immediately
+                    Debug.Log("Player character died in combat!");
+                    
+                    // Mark player as dead in army manager
+                    playerArmy.SetPlayerDead();
+                    
                     HandlePlayerDeath();
+                    
+                    // Set a flag or immediately break combat since player is dead
+                    // The army size check after ExecuteCombat will handle the defeat sequence
+                    Debug.Log("Player character eliminated - combat should end");
                 }
                 else
                 {
@@ -362,28 +384,77 @@ public class EnemyArmy : MonoBehaviour
     
     void HandlePlayerDeath()
     {
-        // Handle player death in combat
-        Debug.Log("Player died in combat - implementing game over logic");
+        // Handle player death in individual combat (when player character dies fighting a soldier)
+        Debug.Log("Player died in individual combat - player character eliminated");
         
-        // You can implement game over logic here, such as:
-        // - Show game over screen
-        // - Restart level
-        // - Reset player position and clear army
+        // Don't reset position or restart - let the army-level defeat handling take care of it
+        // The HandleCombat method will check if playerArmy.GetArmySize() == 0 after combat
+        // and call HandlePlayerDefeat() which shows the proper UI
         
-        // For now, let's reset player and clear army
+        // Just log that the player character was eliminated
+        Debug.Log("Player character eliminated in combat. Army defeat will be handled at army level.");
+    }
+    
+    IEnumerator HandlePlayerDefeat()
+    {
+        Debug.Log("💀 PLAYER DEFEATED! Defeat sequence starting!");
+        
+        // Set defeat flag to prevent any further combat
+        isPlayerDefeated = true;
+        isInCombat = false; // End current combat state
+        
+        // Stop player movement permanently
         PlayerController playerController = playerArmy.player.GetComponent<PlayerController>();
         if (playerController != null)
         {
-            playerController.ResetPosition();
+            playerController.SetAutoMove(false); // Stop auto movement
+            playerController.SetCombatState(true); // Disable all input
         }
         
-        // Clear the army
+        // Kill any DOTween animations on the player before disabling
+        if (playerArmy.player != null)
+        {
+            playerArmy.player.DOKill(); // Kill all tweens on the player transform
+            DOTween.Kill(playerArmy.player); // Kill tweens with this transform as ID
+            Debug.Log("DOTween animations killed for player");
+        }
+        
+        // Disable ArmyManager component to prevent any further army operations
+        if (playerArmy != null)
+        {
+            playerArmy.enabled = false;
+            Debug.Log("ArmyManager disabled to prevent further operations");
+        }
+        
+        // Clear the player's army after disabling the component
         if (playerArmy != null)
         {
             playerArmy.ClearArmy();
         }
         
-        // You might want to trigger a game over screen or restart here
+        // Show Game Lost UI
+        if (gameLostUI != null)
+        {
+            gameLostUI.SetActive(true);
+            Debug.Log("Game Lost UI enabled!");
+        }
+        else
+        {
+            Debug.LogWarning("Game Lost UI not assigned in EnemyArmy component!");
+        }
+        
+        // Disable player components and GameObject after DOTween cleanup
+        if (playerController != null)
+        {
+            playerController.enabled = false;
+            //playerController.gameObject.SetActive(false);
+        }
+        
+        // Disable this enemy army component as well to stop all operations
+        this.enabled = false;
+        
+        Debug.Log("Defeat sequence completed! All combat systems disabled.");
+        yield return null;
     }
     
     List<Transform> GetAvailableSoldiers()
@@ -415,6 +486,52 @@ public class EnemyArmy : MonoBehaviour
         {
             armyCountText.text = GetArmySize().ToString();
         }
+    }
+    
+    void OnDestroy()
+    {
+        // Kill all DOTween animations when this enemy army is destroyed
+        KillAllEnemyDOTweenAnimations();
+        Debug.Log("EnemyArmy: All DOTween animations cleaned up on destroy");
+    }
+    
+    void OnApplicationPause(bool pauseStatus)
+    {
+        // Kill all DOTween animations when app is paused (mobile)
+        if (pauseStatus)
+        {
+            KillAllEnemyDOTweenAnimations();
+        }
+    }
+    
+    void OnApplicationFocus(bool hasFocus)
+    {
+        // Kill all DOTween animations when app loses focus
+        if (!hasFocus)
+        {
+            KillAllEnemyDOTweenAnimations();
+        }
+    }
+    
+    // Method to kill all DOTween animations on this enemy army
+    public void KillAllEnemyDOTweenAnimations()
+    {
+        if (transform != null)
+        {
+            transform.DOKill();
+            DOTween.Kill(transform);
+        }
+        
+        foreach (Transform enemySoldier in enemySoldiers)
+        {
+            if (enemySoldier != null)
+            {
+                enemySoldier.DOKill();
+                DOTween.Kill(enemySoldier);
+            }
+        }
+        
+        Debug.Log("EnemyArmy: All DOTween animations killed manually");
     }
 }
 

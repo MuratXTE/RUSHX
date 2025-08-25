@@ -35,6 +35,7 @@ public class ArmyManager : MonoBehaviour
     
     private List<Transform> soldiers = new List<Transform>();
     private bool isReforming = false;
+    private bool isPlayerAlive = true; // Track if player is alive
     
     void Start()
     {
@@ -171,6 +172,12 @@ public class ArmyManager : MonoBehaviour
             
             Debug.Log($"Soldier removed. Remaining army size: {soldiers.Count + 1}");
             
+            // Kill any DOTween animations on this soldier first
+            if (soldier != null)
+            {
+                soldier.DOKill();
+            }
+            
             // Play soldier death sound
             if (SoundManager.Instance != null)
             {
@@ -234,6 +241,12 @@ public class ArmyManager : MonoBehaviour
                 // Remove without triggering reformation (we'll do it once at the end)
                 soldiers.RemoveAt(randomIndex);
                 
+                // Kill any DOTween animations on this soldier first
+                if (soldierToRemove != null)
+                {
+                    soldierToRemove.DOKill();
+                }
+                
                 // Play soldier death sound
                 if (SoundManager.Instance != null)
                 {
@@ -253,13 +266,15 @@ public class ArmyManager : MonoBehaviour
                 {
                     float delay = i * 0.1f; // Stagger the deaths
                     
+                    // Capture the soldier reference in a local variable to avoid closure issues
+                    Transform currentSoldier = soldierToRemove;
                     DOVirtual.DelayedCall(delay, () => {
-                        if (soldierToRemove != null)
+                        if (currentSoldier != null)
                         {
-                            soldierToRemove.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack);
+                            currentSoldier.DOScale(Vector3.zero, 0.3f).SetEase(Ease.InBack);
                             DOVirtual.DelayedCall(0.3f, () => {
-                                if (soldierToRemove != null && soldierToRemove.gameObject != null)
-                                    Destroy(soldierToRemove.gameObject);
+                                if (currentSoldier != null && currentSoldier.gameObject != null)
+                                    Destroy(currentSoldier.gameObject);
                             });
                         }
                     });
@@ -451,7 +466,27 @@ public class ArmyManager : MonoBehaviour
     public int GetArmySize()
     {
         CleanupNullSoldiers(); // Clean up before counting
-        return soldiers.Count +1; // +1 for the player
+        return soldiers.Count + (isPlayerAlive ? 1 : 0); // +1 for the player only if alive
+    }
+    
+    // Method to mark player as dead (for combat scenarios)
+    public void SetPlayerDead()
+    {
+        isPlayerAlive = false;
+        Debug.Log("Player marked as dead. Army size now: " + GetArmySize());
+    }
+    
+    // Method to revive player (for respawn scenarios)
+    public void SetPlayerAlive()
+    {
+        isPlayerAlive = true;
+        Debug.Log("Player marked as alive. Army size now: " + GetArmySize());
+    }
+    
+    // Check if player is alive
+    public bool IsPlayerAlive()
+    {
+        return isPlayerAlive;
     }
     
     // Get available soldiers for combat (excludes player, player fights last)
@@ -498,9 +533,92 @@ public class ArmyManager : MonoBehaviour
         foreach (Transform soldier in soldiers)
         {
             if (soldier != null)
+            {
+                // Kill DOTween animations before destroying
+                soldier.DOKill();
+                DOTween.Kill(soldier);
                 Destroy(soldier.gameObject);
+            }
         }
         soldiers.Clear();
+        
+        // Reset player status when clearing army
+        isPlayerAlive = true;
+        Debug.Log("Army cleared and player status reset to alive");
+    }
+    
+    void OnDestroy()
+    {
+        // Kill all DOTween animations on this GameObject and its children when destroyed
+        if (transform != null)
+        {
+            transform.DOKill();
+            DOTween.Kill(transform);
+        }
+        
+        // Kill animations on all soldiers
+        foreach (Transform soldier in soldiers)
+        {
+            if (soldier != null)
+            {
+                soldier.DOKill();
+                DOTween.Kill(soldier);
+            }
+        }
+        
+        // Kill animations on player if it exists
+        if (player != null)
+        {
+            player.DOKill();
+            DOTween.Kill(player);
+        }
+        
+        Debug.Log("ArmyManager: All DOTween animations cleaned up on destroy");
+    }
+    
+    void OnApplicationPause(bool pauseStatus)
+    {
+        // Kill all DOTween animations when app is paused (mobile)
+        if (pauseStatus)
+        {
+            KillAllDOTweenAnimations();
+        }
+    }
+    
+    void OnApplicationFocus(bool hasFocus)
+    {
+        // Kill all DOTween animations when app loses focus
+        if (!hasFocus)
+        {
+            KillAllDOTweenAnimations();
+        }
+    }
+    
+    // Method to kill all DOTween animations on this army
+    public void KillAllDOTweenAnimations()
+    {
+        if (transform != null)
+        {
+            transform.DOKill();
+            DOTween.Kill(transform);
+        }
+        
+        foreach (Transform soldier in soldiers)
+        {
+            if (soldier != null)
+            {
+                soldier.DOKill();
+                DOTween.Kill(soldier);
+            }
+        }
+        
+        if (player != null)
+        {
+            player.DOKill();
+            DOTween.Kill(player);
+        }
+        
+        Debug.Log("ArmyManager: All DOTween animations killed manually");
     }
     
     // Method to trigger victory animations for all soldiers
@@ -508,26 +626,53 @@ public class ArmyManager : MonoBehaviour
     {
         Debug.Log($"Playing victory animation for {soldiers.Count} soldiers + player!");
         
+        // Clean up the soldiers list first
+        CleanupNullSoldiers();
+        
         // Trigger victory animation on all soldiers
         for (int i = 0; i < soldiers.Count; i++)
         {
-            if (soldiers[i] != null)
+            if (soldiers[i] != null && soldiers[i].gameObject != null)
             {
-                Animator soldierAnimator = soldiers[i].GetComponentInChildren<Animator>();
+                // Kill any existing animations on this soldier first
+                soldiers[i].DOKill();
+                
+                Animator soldierAnimator = soldiers[i].GetComponent<Animator>();
+                if (soldierAnimator == null)
+                {
+                    soldierAnimator = soldiers[i].GetComponentInChildren<Animator>();
+                }
+                
                 if (soldierAnimator != null)
                 {
                     soldierAnimator.SetTrigger("victory");
+                }
+                else
+                {
+                    Debug.LogWarning($"No Animator found on soldier: {soldiers[i].name}");
                 }
             }
         }
         
         // Trigger victory animation on player too
-        if (player != null)
+        if (player != null && player.gameObject != null)
         {
-            Animator playerAnimator = player.GetComponentInChildren<Animator>();
+            // Kill any existing animations on player first
+            player.DOKill();
+            
+            Animator playerAnimator = player.GetComponent<Animator>();
+            if (playerAnimator == null)
+            {
+                playerAnimator = player.GetComponentInChildren<Animator>();
+            }
+            
             if (playerAnimator != null)
             {
                 playerAnimator.SetTrigger("victory");
+            }
+            else
+            {
+                Debug.LogWarning($"No Animator found on player: {player.name}");
             }
         }
     }

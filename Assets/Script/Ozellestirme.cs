@@ -61,7 +61,7 @@ public class Ozellestirme : MonoBehaviour
         _VeriYonetim.Load();
         _ItemBilgileri = _VeriYonetim.ListeyiAktar();
 
-        _BellekYonetim.VeriKaydet_int("Puan", 10000);
+        //_BellekYonetim.VeriKaydet_int("Puan", 10000);
 
         // Debug bilgileri - array boyutlarını kontrol et
         Debug.Log($"Sapkalar array size: {Sapkalar.Length}");
