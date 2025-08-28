@@ -226,23 +226,30 @@ public class EnemyArmy : MonoBehaviour
     IEnumerator ExecuteCombat(List<CombatPair> combatPairs)
     {
         List<Tween> moveTweens = new List<Tween>();
+        List<Transform> soldiersInCombat = new List<Transform>();
 
         foreach (var pair in combatPairs)
         {
             if (pair.playerSoldier != null && pair.enemySoldier != null)
             {
+                // Add soldiers to combat tracking list
+                soldiersInCombat.Add(pair.playerSoldier);
+                soldiersInCombat.Add(pair.enemySoldier);
+
                 Vector3 playerPos = pair.playerSoldier.position;
                 Vector3 enemyPos = pair.enemySoldier.position;
                 Vector3 midPoint = (playerPos + enemyPos) / 2f;
 
-                Tween playerMove = pair.playerSoldier.DOMove(midPoint + Vector3.left * 0.3f, soldierMoveSpeed).SetSpeedBased();
-                Tween enemyMove = pair.enemySoldier.DOMove(midPoint + Vector3.right * 0.3f, soldierMoveSpeed).SetSpeedBased();
+                // Create safe movement tweens with collision detection
+                Tween playerMove = CreateSafeCombatMove(pair.playerSoldier, midPoint + Vector3.left * 0.3f);
+                Tween enemyMove = CreateSafeCombatMove(pair.enemySoldier, midPoint + Vector3.right * 0.3f);
 
                 if (playerMove != null) moveTweens.Add(playerMove);
                 if (enemyMove != null) moveTweens.Add(enemyMove);
             }
         }
 
+        // Wait for movement phase with safety checks
         if (moveTweens.Count > 0)
         {
             Sequence moveSequence = DOTween.Sequence();
@@ -257,6 +264,10 @@ public class EnemyArmy : MonoBehaviour
             }
         }
 
+        // Additional safety check - verify all soldiers still exist before proceeding
+        combatPairs = ValidateCombatPairs(combatPairs);
+
+        // Attack phase
         foreach (var pair in combatPairs)
         {
             if (pair.playerSoldier != null && pair.enemySoldier != null)
@@ -283,12 +294,20 @@ public class EnemyArmy : MonoBehaviour
 
         yield return new WaitForSeconds(attackAnimationDuration);
 
+        // Final combat resolution with validation
         foreach (var pair in combatPairs)
         {
             if (pair.enemySoldier != null) RemoveEnemySoldier(pair.enemySoldier);
 
             if (pair.playerSoldier != null)
             {
+                // Ensure combat movement state is cleared
+                ArmySoldier soldierScript = pair.playerSoldier.GetComponent<ArmySoldier>();
+                if (soldierScript != null)
+                {
+                    soldierScript.isInCombatMovement = false;
+                }
+
                 if (pair.isPlayerInvolved)
                 {
                     playerArmy.SetPlayerDead();
@@ -300,6 +319,134 @@ public class EnemyArmy : MonoBehaviour
                 }
             }
         }
+    }
+
+    // Create safe combat movement with collision detection
+    Tween CreateSafeCombatMove(Transform soldier, Vector3 targetPosition)
+    {
+        if (soldier == null || soldier.Equals(null)) return null;
+
+        // Mark soldier as in combat movement to prevent obstacle death
+        ArmySoldier soldierScript = soldier.GetComponent<ArmySoldier>();
+        if (soldierScript != null)
+        {
+            soldierScript.isInCombatMovement = true;
+        }
+
+        // Check if path to target position would collide with obstacles
+        Vector3 startPos = soldier.position;
+        Vector3 direction = (targetPosition - startPos).normalized;
+        float distance = Vector3.Distance(startPos, targetPosition);
+
+        // Raycast to check for obstacles in the path
+        if (Physics.Raycast(startPos, direction, out RaycastHit hit, distance))
+        {
+            if (hit.collider.CompareTag("Obstacle"))
+            {
+                // Obstacle in path - find alternative safe position
+                Vector3 safePosition = FindSafeCombatPosition(startPos, targetPosition);
+                targetPosition = safePosition;
+            }
+        }
+
+        // Create movement tween with death detection
+        return soldier.DOMove(targetPosition, soldierMoveSpeed)
+            .SetSpeedBased()
+            .SetTarget(soldier)
+            .OnUpdate(() => {
+                // Check if soldier died during movement
+                if (soldier == null || soldier.Equals(null))
+                {
+                    // Soldier died, but tween will be killed by DOTween cleanup
+                    return;
+                }
+            })
+            .OnComplete(() => {
+                if (soldier != null && !soldier.Equals(null))
+                {
+                    // Ensure soldier is at correct position after movement
+                    soldier.position = targetPosition;
+                    
+                    // Remove combat movement protection
+                    ArmySoldier script = soldier.GetComponent<ArmySoldier>();
+                    if (script != null)
+                    {
+                        script.isInCombatMovement = false;
+                    }
+                }
+            });
+    }
+
+    // Find a safe position for combat that avoids obstacles
+    Vector3 FindSafeCombatPosition(Vector3 startPos, Vector3 idealTarget)
+    {
+        Vector3 direction = (idealTarget - startPos).normalized;
+        float maxDistance = Vector3.Distance(startPos, idealTarget);
+        
+        // Try different positions around the ideal target
+        Vector3[] offsets = {
+            Vector3.zero,
+            Vector3.right * 0.5f,
+            Vector3.left * 0.5f,
+            Vector3.forward * 0.5f,
+            Vector3.back * 0.5f,
+            (Vector3.right + Vector3.forward) * 0.3f,
+            (Vector3.left + Vector3.forward) * 0.3f,
+            (Vector3.right + Vector3.back) * 0.3f,
+            (Vector3.left + Vector3.back) * 0.3f
+        };
+
+        foreach (Vector3 offset in offsets)
+        {
+            Vector3 testPosition = idealTarget + offset;
+            
+            // Check if this position is safe (no obstacles nearby)
+            if (!Physics.CheckSphere(testPosition, 0.3f, LayerMask.GetMask("Default")))
+            {
+                // Also check path to this position
+                Vector3 pathDirection = (testPosition - startPos).normalized;
+                float pathDistance = Vector3.Distance(startPos, testPosition);
+                
+                if (!Physics.Raycast(startPos, pathDirection, pathDistance))
+                {
+                    return testPosition;
+                }
+            }
+        }
+        
+        // If no safe position found, return a position closer to start
+        return Vector3.Lerp(startPos, idealTarget, 0.5f);
+    }
+
+    // Validate combat pairs and remove any with null/destroyed soldiers
+    List<CombatPair> ValidateCombatPairs(List<CombatPair> pairs)
+    {
+        List<CombatPair> validPairs = new List<CombatPair>();
+        
+        foreach (var pair in pairs)
+        {
+            bool playerValid = pair.playerSoldier != null && !pair.playerSoldier.Equals(null);
+            bool enemyValid = pair.enemySoldier != null && !pair.enemySoldier.Equals(null);
+            
+            if (playerValid && enemyValid)
+            {
+                validPairs.Add(pair);
+            }
+            else
+            {
+                // One or both soldiers died during movement - handle cleanup
+                if (!playerValid && pair.playerSoldier != null)
+                {
+                    Debug.Log("Player soldier died during combat movement");
+                }
+                if (!enemyValid && pair.enemySoldier != null)
+                {
+                    Debug.Log("Enemy soldier died during combat movement");
+                }
+            }
+        }
+        
+        return validPairs;
     }
 
     public void RemoveEnemySoldier(Transform soldier)

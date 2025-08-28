@@ -17,12 +17,6 @@ public class PickupSoldier : MonoBehaviour
     [Tooltip("Duration for the join army animation")]
     public float joinAnimationDuration = 0.8f;
     
-    [Tooltip("Scale animation when soldier gets excited to join")]
-    public float exciteScale = 1.2f;
-    
-    [Tooltip("Duration for excitement bounce")]
-    public float exciteAnimationDuration = 0.3f;
-    
     [Header("Visual Feedback")]
     [Tooltip("Particle effect when soldier gets recruited")]
     public GameObject recruitParticleEffect;
@@ -52,14 +46,12 @@ public class PickupSoldier : MonoBehaviour
     private Transform playerTransform;
     private ArmyManager armyManager;
     private Vector3 originalPosition;
-    private Vector3 originalScale;
     private bool hasBeenRecruited = false;
     
     void Start()
     {
         // Store original properties
         originalPosition = transform.position;
-        originalScale = transform.localScale;
         
         // Find the player and army manager
         FindPlayerAndArmyManager();
@@ -183,12 +175,7 @@ public class PickupSoldier : MonoBehaviour
         // Kill previous animations
         transform.DOKill();
         
-        // Excited bounce animation
-        Sequence exciteSequence = DOTween.Sequence();
-        exciteSequence.Append(transform.DOScale(originalScale * exciteScale, exciteAnimationDuration * 0.5f).SetEase(Ease.OutBack));
-        exciteSequence.Append(transform.DOScale(originalScale, exciteAnimationDuration * 0.5f).SetEase(Ease.InBack));
-        
-        // Add excited bouncing
+        // Add excited bouncing (only position animation, no scaling)
         transform.DOMoveY(originalPosition.y + bounceHeight * 1.5f, bounceSpeed * 0.7f)
             .SetLoops(-1, LoopType.Yoyo)
             .SetEase(Ease.InOutSine);
@@ -207,9 +194,8 @@ public class PickupSoldier : MonoBehaviour
         // Kill animations and return to idle
         transform.DOKill();
         
-        // Return to original position and scale
+        // Return to original position (no scaling)
         transform.DOMove(originalPosition, 0.5f).SetEase(Ease.OutQuart);
-        transform.DOScale(originalScale, 0.5f).SetEase(Ease.OutQuart);
         
         // Resume idle bounce
         if (idleBounce)
@@ -232,9 +218,6 @@ public class PickupSoldier : MonoBehaviour
         
         // Kill previous animations
         transform.DOKill();
-        
-        // Return to original scale if needed
-        transform.DOScale(originalScale, 0.3f);
         
         // Play walking sound
         PlayRecruitmentSound("walking");

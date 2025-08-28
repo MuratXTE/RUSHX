@@ -10,6 +10,10 @@ public class ArmySoldier : MonoBehaviour
     [Header("Soldier Settings")]
     public float health = 1f;
     public bool canDie = true;
+    
+    [Header("Combat Settings")]
+    [Tooltip("Is this soldier currently moving to combat? Makes them temporarily invulnerable to obstacles.")]
+    public bool isInCombatMovement = false;
 
     [Header("Animation Settings")]
     public float damageAnimationDuration = 0.2f;
@@ -35,13 +39,15 @@ public class ArmySoldier : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Obstacle") && canDie)
+        // Don't die from obstacles if in combat movement or can't die
+        if (other.CompareTag("Obstacle") && canDie && !isInCombatMovement)
             Die();
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Obstacle") && canDie)
+        // Don't die from obstacles if in combat movement or can't die
+        if (collision.gameObject.CompareTag("Obstacle") && canDie && !isInCombatMovement)
             Die();
     }
 

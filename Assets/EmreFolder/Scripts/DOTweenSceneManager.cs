@@ -79,8 +79,8 @@ public class DOTweenSceneManager : MonoBehaviour
             SceneManager.sceneUnloaded -= OnSceneUnloaded;
         }
         
-        // Perform final cleanup
-       // StartCoroutine(FinalCleanup());
+        // Perform final cleanup synchronously - can't use coroutine in OnDestroy
+        PerformFinalCleanupSync();
         
         if (instance == this)
         {
@@ -239,6 +239,36 @@ public class DOTweenSceneManager : MonoBehaviour
         
         if (enableDetailedLogging)
             Debug.Log("DOTweenSceneManager: Final cleanup completed");
+    }
+    
+    // Synchronous version of final cleanup for OnDestroy (can't use coroutines there)
+    private void PerformFinalCleanupSync()
+    {
+        try
+        {
+            if (enableDetailedLogging)
+                Debug.Log("DOTweenSceneManager: Performing synchronous final cleanup before destruction");
+            
+            // Kill all tweens immediately
+            DOTween.KillAll(false);
+            
+            // Clear all sequences and cached data
+            DOTween.Clear(true);
+            
+            // Clear tracked transforms
+            if (trackedTransforms != null)
+                trackedTransforms.Clear();
+            
+            // Force garbage collection to clean up immediately
+            System.GC.Collect();
+            
+            if (enableDetailedLogging)
+                Debug.Log("DOTweenSceneManager: Synchronous final cleanup completed");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"DOTweenSceneManager: Error during synchronous cleanup: {e.Message}");
+        }
     }
     
     // Method to kill all DOTween animations globally
