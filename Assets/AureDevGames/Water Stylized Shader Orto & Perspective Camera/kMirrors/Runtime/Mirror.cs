@@ -208,7 +208,7 @@ namespace kTools.Mirrors
 
             // Profiling command
             CommandBuffer cmd = CommandBufferPool.Get($"Mirror {gameObject.GetInstanceID()}");
-            using (new ProfilingSample(cmd, $"Mirror {gameObject.GetInstanceID()}"))
+           // using (new ProfilingSample(cmd, $"Mirror {gameObject.GetInstanceID()}"))
             {
                 ExecuteCommand(context, cmd);
 
@@ -254,7 +254,7 @@ namespace kTools.Mirrors
 
             // Render reflection camera with inverse culling
             GL.invertCulling = true;
-            UniversalRenderPipeline.RenderSingleCamera(context, reflectionCamera);
+            //UniversalRenderPipeline.RenderSingleCamera(context, reflectionCamera);
             GL.invertCulling = false;
         }
 #endregion

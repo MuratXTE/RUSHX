@@ -20,6 +20,7 @@ public class Level_Manager : MonoBehaviour
     VeriYonetimi _VeriYonetim = new VeriYonetimi();
     public GameObject YuklemeEkrani;
     public Slider YuklemeSlider;
+
     void Start()
     {
         _VeriYonetim.Dil_Load();
@@ -29,25 +30,25 @@ public class Level_Manager : MonoBehaviour
 
         ButonSes.volume = _BellekYonetim.VeriOku_f("MenuFx");
 
-        int mevcutLevel = _BellekYonetim.VeriOku_i("SonLevel") - 4;
+        int mevcutLevel = _BellekYonetim.VeriOku_i("SonLevel");
         int Index = 1;
+
         for (int i = 0; i < Butonlar.Length; i++)
         {
             if (Index <= mevcutLevel)
             {
                 Butonlar[i].GetComponentInChildren<Text>().text = Index.ToString();
-                int SahneIndex = Index + 4;
-                Butonlar[i].onClick.AddListener(delegate { SahneYukle(SahneIndex); });
+                int SahneIndex = Index; // artýk ofset yok!
+                Butonlar[i].onClick.AddListener(() => SahneYukle(SahneIndex));
+                Butonlar[i].interactable = true;
             }
             else
             {
                 Butonlar[i].GetComponent<Image>().sprite = KilitButon;
-                //Butonlar[i].interactable = false;
-                Butonlar[i].enabled = false;
+                Butonlar[i].interactable = false; // Doðru kullaným
             }
             Index++;
         }
-
     }
 
     void DilTercihiYonetimi()
@@ -55,30 +56,26 @@ public class Level_Manager : MonoBehaviour
         if (_BellekYonetim.VeriOku_s("Dil") == "EN")
         {
             for (int i = 0; i < TextObjeleri.Length; i++)
-            {
                 TextObjeleri[i].text = _DilVerileriAnaObje[0]._DilVerileri_EN[i].Metin;
-            }
         }
         else if (_BellekYonetim.VeriOku_s("Dil") == "TR")
         {
             for (int i = 0; i < TextObjeleri.Length; i++)
-            {
                 TextObjeleri[i].text = _DilVerileriAnaObje[0]._DilVerileri_TR[i].Metin;
-            }
         }
         else
         {
             for (int i = 0; i < TextObjeleri.Length; i++)
-            {
                 TextObjeleri[i].text = _DilVerileriAnaObje[0]._DilVerileri_DE[i].Metin;
-            }
         }
     }
+
     public void SahneYukle(int Index)
     {
         ButonSes.Play();
         StartCoroutine(LoadAsync(Index));
     }
+
     IEnumerator LoadAsync(int SceneIndex)
     {
         AsyncOperation operation = SceneManager.LoadSceneAsync(SceneIndex);
@@ -90,6 +87,7 @@ public class Level_Manager : MonoBehaviour
             yield return null;
         }
     }
+
     public void GeriDon()
     {
         ButonSes.Play();

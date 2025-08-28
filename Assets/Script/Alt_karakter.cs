@@ -6,51 +6,38 @@ public class Alt_karakter : MonoBehaviour
     NavMeshAgent _Navmesh;
     public GameManager _Gamemanager;
     public GameObject Target;
+
     void Start()
     {
         _Navmesh = GetComponent<NavMeshAgent>();
+        InvokeRepeating(nameof(UpdateDestination), 0f, 0.2f); // 0.2 sn’de bir hedef güncelle
     }
 
-    private void LateUpdate()
+    void UpdateDestination()
     {
-        _Navmesh.SetDestination(Target.transform.position);
+        if (Target != null && _Navmesh.enabled)
+        {
+            _Navmesh.SetDestination(Target.transform.position);
+        }
     }
 
-    Vector3 PozisyonVer()
-    {
-        return transform.position + Vector3.up * 1f;
-
-    }
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("telli_engel"))
+        if (other.CompareTag("telli_engel") || other.CompareTag("Testere") || other.CompareTag("PervaneIgneler"))
         {
-            _Gamemanager.YokOlmaEfektiOlustur(PozisyonVer());
-            gameObject.SetActive(false);
-        }
-       else if (other.CompareTag("Testere"))
-        {
-            _Gamemanager.YokOlmaEfektiOlustur(PozisyonVer());
-            gameObject.SetActive(false);
-        }
-        else if (other.CompareTag("PervaneIgneler"))
-        {
-            _Gamemanager.YokOlmaEfektiOlustur(PozisyonVer());
+            // Artýk sadece karakteri azaltýyoruz
+            GameManager.AnlikKarakterSayisi--;
             gameObject.SetActive(false);
         }
         else if (other.CompareTag("Balyoz"))
         {
-            _Gamemanager.YokOlmaEfektiOlustur(PozisyonVer(), true);
-            gameObject.SetActive(false);
-        }
-        else if (other.CompareTag("Dusman"))
-        {
-            _Gamemanager.YokOlmaEfektiOlustur(PozisyonVer(),false,false);
+            GameManager.AnlikKarakterSayisi--;
             gameObject.SetActive(false);
         }
         else if (other.CompareTag("BosKarakter"))
         {
-            _Gamemanager.Karakterler.Add(other.gameObject);
+            if (!_Gamemanager.Karakterler.Contains(other.gameObject))
+                _Gamemanager.Karakterler.Add(other.gameObject);
         }
     }
 }
