@@ -3,7 +3,6 @@
 public class Karakter : MonoBehaviour
 {
     public GameManager _GameManager;
-    public Kamera _Kamera;
     public bool SonaGeldikmi;
     public GameObject Gidecegiyer;
 
@@ -15,50 +14,12 @@ public class Karakter : MonoBehaviour
 
     void Update()
     {
-        if (Time.timeScale != 0)
+        if (Time.timeScale == 0) return;
+
+        if (SonaGeldikmi)
         {
-            if (SonaGeldikmi)
-            {
-                float speed = 2f;
-                transform.position = Vector3.MoveTowards(transform.position, Gidecegiyer.transform.position, speed * Time.deltaTime);
-            }
-            else
-            {
-                // ✅ Mobil dokunma kontrolü
-                if (Input.touchCount > 0)
-                {
-                    Touch touch = Input.GetTouch(0);
-                    if (touch.phase == TouchPhase.Moved)
-                    {
-                        float deltaX = touch.deltaPosition.x * 0.005f;
-                        transform.position = new Vector3(
-                            transform.position.x + deltaX,
-                            transform.position.y,
-                            transform.position.z
-                        );
-                    }
-                }
-                // ✅ Editor test için mouse kontrolü
-                else if (Input.GetMouseButton(0))
-                {
-                    if (Input.GetAxis("Mouse X") < 0)
-                    {
-                        transform.position = Vector3.Lerp(
-                            transform.position,
-                            new Vector3(transform.position.x - 0.1f, transform.position.y, transform.position.z),
-                            0.3f
-                        );
-                    }
-                    if (Input.GetAxis("Mouse X") > 0)
-                    {
-                        transform.position = Vector3.Lerp(
-                            transform.position,
-                            new Vector3(transform.position.x + 0.1f, transform.position.y, transform.position.z),
-                            0.3f
-                        );
-                    }
-                }
-            }
+            float speed = 2f;
+            transform.position = Vector3.MoveTowards(transform.position, Gidecegiyer.transform.position, speed * Time.deltaTime);
         }
     }
 
@@ -71,7 +32,6 @@ public class Karakter : MonoBehaviour
         }
         else if (other.CompareTag("Sontetikleyici"))
         {
-            _Kamera.SonaGeldikmi = true;
             SonaGeldikmi = true;
         }
         else if (other.CompareTag("BosKarakter"))
@@ -83,12 +43,12 @@ public class Karakter : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Direk") || collision.gameObject.CompareTag("telli_engel") || collision.gameObject.CompareTag("PervaneIgneler"))
+        if (collision.gameObject.CompareTag("Direk") ||
+            collision.gameObject.CompareTag("telli_engel") ||
+            collision.gameObject.CompareTag("PervaneIgneler"))
         {
-            if (transform.position.x > 0)
-                transform.position = new Vector3(transform.position.x - 0.2f, transform.position.y, transform.position.z);
-            else
-                transform.position = new Vector3(transform.position.x + 0.2f, transform.position.y, transform.position.z);
+            float offset = transform.position.x > 0 ? -0.2f : 0.2f;
+            transform.position = new Vector3(transform.position.x + offset, transform.position.y, transform.position.z);
         }
     }
 }

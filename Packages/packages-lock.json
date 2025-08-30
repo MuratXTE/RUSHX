@@ -80,16 +80,6 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
-    "com.unity.feature.mobile": {
-      "version": "1.0.0",
-      "depth": 0,
-      "source": "builtin",
-      "dependencies": {
-        "com.unity.mobile.android-logcat": "1.4.4",
-        "com.unity.adaptiveperformance": "5.1.1",
-        "com.unity.mobile.notifications": "2.4.0"
-      }
-    },
     "com.unity.ide.rider": {
       "version": "3.0.31",
       "depth": 0,
@@ -122,22 +112,6 @@
       "depth": 2,
       "source": "registry",
       "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.mobile.android-logcat": {
-      "version": "1.4.4",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.mobile.notifications": {
-      "version": "2.4.0",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.modules.androidjni": "1.0.0"
-      },
       "url": "https://packages.unity.com"
     },
     "com.unity.multiplayer.center": {

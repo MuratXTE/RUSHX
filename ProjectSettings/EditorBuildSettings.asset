@@ -26,6 +26,18 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SAHNELER/Leveller/Level1.unity
     guid: 670ba32bc6bcaf946ba8a215487b4e43
+  - enabled: 1
+    path: Assets/SAHNELER/Leveller/Level2.unity
+    guid: b83f60428e2167c42a46326ab1b578a2
+  - enabled: 1
+    path: Assets/SAHNELER/Leveller/Level3.unity
+    guid: 118e92b20374d9044a16767420db7f89
+  - enabled: 1
+    path: Assets/SAHNELER/Leveller/Level4.unity
+    guid: edb34ac3a07cb5645b137d345fe3daf1
+  - enabled: 1
+    path: Assets/SAHNELER/Leveller/Level5.unity
+    guid: b4870e4f50b6aa54c993ede9bedabb2f
   m_configObjects:
     com.unity.adaptiveperformance.google.android.provider_settings: {fileID: 11400000, guid: d4121aea5b98e4b41bc5ab53b6cfde51, type: 2}
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 9277de2aa79de4e4fb9d3a55e25b62a2, type: 2}

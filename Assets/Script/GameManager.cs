@@ -59,9 +59,12 @@ public class GameManager : MonoBehaviour
         _DilOkunanVeriler = _VeriYonetim.DilVerileriListeyiAktar();
         _DilVerileriAnaObje.Add(_DilOkunanVeriler[5]);
         DilTercihiYonetimi();
-
-        // ✅ sadece tek reklam çağrısı
         Object.FindFirstObjectByType<ReklamManager>().GecisReklamiGoster();
+    }
+
+    void Update()
+    {
+        SavasDurumu(); // ✅ artık her frame kontrol ediyor
     }
 
     void DilTercihiYonetimi()
@@ -107,15 +110,20 @@ public class GameManager : MonoBehaviour
             {
                 OyunBittimi = true;
 
-                // Puan + level kaydı
-                if (_Scene.buildIndex == _BellekYonetim.VeriOku_i("SonLevel"))
-                {
-                    if (AnlikKarakterSayisi > 5)
-                        _BellekYonetim.VeriKaydet_int("Puan", _BellekYonetim.VeriOku_i("Puan") + 600);
-                    else
-                        _BellekYonetim.VeriKaydet_int("Puan", _BellekYonetim.VeriOku_i("Puan") + 100);
+                // ✅ Puanı her zaman kaydet
+                if (AnlikKarakterSayisi > 5)
+                    _BellekYonetim.VeriKaydet_int("Puan", _BellekYonetim.VeriOku_i("Puan") + 600);
+                else
+                    _BellekYonetim.VeriKaydet_int("Puan", _BellekYonetim.VeriOku_i("Puan") + 100);
 
-                    _BellekYonetim.VeriKaydet_int("SonLevel", _BellekYonetim.VeriOku_i("SonLevel") + 1);
+                // ✅ SonLevel’i her zaman güncelle
+                int mevcutLevel = _Scene.buildIndex;
+                int kayitliLevel = _BellekYonetim.VeriOku_i("SonLevel");
+
+                if (mevcutLevel >= kayitliLevel)
+                {
+                    _BellekYonetim.VeriKaydet_int("SonLevel", mevcutLevel + 1);
+                    PlayerPrefs.Save(); // 🔒 kesin kayıt olsun
                 }
 
                 islemPanelleri[2].SetActive(true); // kazandın paneli

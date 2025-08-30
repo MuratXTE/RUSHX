@@ -39,7 +39,6 @@ public class AyarlarManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Dil verileri yüklenemedi!");
             return;
         }
 
