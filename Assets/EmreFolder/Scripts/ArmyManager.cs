@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -100,8 +100,6 @@ public class ArmyManager : MonoBehaviour
         {
             GameObject newSoldier = Instantiate(soldierPrefab, player.position, Quaternion.identity);
             newSoldier.transform.SetParent(player);
-            // Remove initial scale setting to prevent scaling issues
-            // newSoldier.transform.localScale = Vector3.zero;
 
             soldiers.Add(newSoldier.transform);
 
@@ -111,20 +109,16 @@ public class ArmyManager : MonoBehaviour
 
             soldierScript.armyManager = this;
 
-            // Safe delayed call with null check
             Transform soldierTransform = newSoldier.transform;
             DOVirtual.DelayedCall(0.1f, () => {
                 if (soldierScript != null && soldierTransform != null)
                     soldierScript.ApplyItemsToSoldier();
             });
 
-            // Remove all scaling animations - just use position-based spawn effect
             if (soldierTransform != null && soldierTransform.gameObject != null)
             {
-                // Simple spawn animation - soldier appears at player's Y level and moves to position
-                Vector3 spawnPos = new Vector3(player.position.x, player.position.y, player.position.z); // Same Y as player
+                Vector3 spawnPos = new Vector3(player.position.x, player.position.y, player.position.z);
                 soldierTransform.position = spawnPos;
-                // Optional: small sideways offset so they don't spawn exactly on the player
                 Vector3 randomOffset = new Vector3(Random.Range(-0.5f, 0.5f), 0f, Random.Range(-0.5f, 0.5f));
                 soldierTransform.position += randomOffset;
             }
@@ -144,10 +138,9 @@ public class ArmyManager : MonoBehaviour
 
             if (soldier != null)
             {
-                // Kill ALL animations on this soldier immediately to prevent errors
-                soldier.DOKill(true); // Complete any running tweens
-                DOTween.Kill(soldier, true); // Kill with complete = true
-                DOTween.Kill(soldier.gameObject, true); // Also kill gameObject-targeted tweens
+                soldier.DOKill(true);
+                DOTween.Kill(soldier, true);
+                DOTween.Kill(soldier.gameObject, true);
 
                 if (SoundManager.Instance != null)
                     SoundManager.Instance.PlaySoldierDeathSound();
@@ -158,10 +151,8 @@ public class ArmyManager : MonoBehaviour
                     Destroy(deathEffect, 3f);
                 }
 
-                // Remove scaling death animation - just destroy immediately or fade out
                 if (soldier != null && soldier.gameObject != null)
                 {
-                    // Simple fade out or immediate destruction
                     Destroy(soldier.gameObject);
                 }
             }
@@ -185,7 +176,6 @@ public class ArmyManager : MonoBehaviour
 
                 if (soldierToRemove != null)
                 {
-                    // Kill ALL animations immediately
                     soldierToRemove.DOKill(true);
                     DOTween.Kill(soldierToRemove, true);
                     DOTween.Kill(soldierToRemove.gameObject, true);
@@ -199,10 +189,9 @@ public class ArmyManager : MonoBehaviour
                         Destroy(deathEffect, 3f);
                     }
 
-                    // Remove scaling death animation - destroy immediately with optional delay
                     float delay = i * 0.1f;
                     Transform currentSoldier = soldierToRemove;
-                    
+
                     DOVirtual.DelayedCall(delay, () => {
                         if (currentSoldier != null && currentSoldier.gameObject != null)
                         {
@@ -268,70 +257,27 @@ public class ArmyManager : MonoBehaviour
                     Transform currentSoldier = soldiers[soldierIndex];
                     float animDelay = soldierIndex * 0.02f;
 
-                    // Enhanced null checks before adding to sequence
                     if (currentSoldier != null && currentSoldier.gameObject != null && !currentSoldier.Equals(null))
                     {
-                        // Kill any existing movement animations on this soldier
                         try
                         {
                             currentSoldier.DOKill();
                         }
-                        catch (System.Exception e)
-                        {
-                            Debug.LogWarning($"Error killing DOTween on soldier {soldierIndex}: {e.Message}");
-                            continue; // Skip this soldier if we can't kill its animations
-                        }
-                        
-                        // Create movement tween with additional safety checks
+                        catch { continue; }
+
                         var moveTween = currentSoldier.DOLocalMove(targetLocalPosition, reformAnimationDuration)
                             .SetEase(reformEase)
-                            .SetTarget(currentSoldier)
-                            .OnStart(() => {
-                                // Double-check the soldier still exists when the tween starts
-                                if (currentSoldier == null || currentSoldier.Equals(null))
-                                {
-                                    Debug.LogWarning("Soldier became null during formation movement start");
-                                    return;
-                                }
-                            })
-                            .OnUpdate(() => {
-                                // Safety check during animation
-                                if (currentSoldier == null || currentSoldier.Equals(null))
-                                {
-                                    Debug.LogWarning("Soldier became null during formation movement");
-                                    return;
-                                }
-                            });
+                            .SetTarget(currentSoldier);
 
-                        // Create rotation tween with additional safety checks  
                         var rotTween = currentSoldier.DOLocalRotateQuaternion(Quaternion.identity, reformAnimationDuration * 0.5f)
                             .SetEase(Ease.OutQuart)
-                            .SetTarget(currentSoldier)
-                            .OnStart(() => {
-                                if (currentSoldier == null || currentSoldier.Equals(null))
-                                {
-                                    Debug.LogWarning("Soldier became null during formation rotation start");
-                                    return;
-                                }
-                            })
-                            .OnUpdate(() => {
-                                if (currentSoldier == null || currentSoldier.Equals(null))
-                                {
-                                    Debug.LogWarning("Soldier became null during formation rotation");
-                                    return;
-                                }
-                            });
+                            .SetTarget(currentSoldier);
 
-                        // Only add to sequence if tweens were created successfully
                         if (moveTween != null && !moveTween.Equals(null))
-                        {
                             reformSequence.Insert(animDelay, moveTween);
-                        }
-                        
+
                         if (rotTween != null && !rotTween.Equals(null))
-                        {
                             reformSequence.Insert(animDelay, rotTween);
-                        }
                     }
                 }
                 soldierIndex++;
@@ -339,11 +285,9 @@ public class ArmyManager : MonoBehaviour
             currentLayer++;
         }
 
-        // Only play sequence if it has tweens and add global safety callback
         if (reformSequence != null && reformSequence.Duration() > 0)
         {
             reformSequence.OnComplete(() => {
-                // Clean up any null soldiers after formation completes
                 CleanupNullSoldiers();
             }).Play();
         }
@@ -353,7 +297,6 @@ public class ArmyManager : MonoBehaviour
     {
         for (int i = soldiers.Count - 1; i >= 0; i--)
         {
-            // Enhanced null checking for destroyed Unity objects
             if (soldiers[i] == null || soldiers[i].Equals(null) || soldiers[i].gameObject == null)
             {
                 soldiers.RemoveAt(i);
@@ -363,26 +306,15 @@ public class ArmyManager : MonoBehaviour
 
     void RefreshArmyManagerReferences()
     {
-        foreach (Transform soldier in soldiers.ToArray()) // Use ToArray to avoid collection modification issues
+        foreach (Transform soldier in soldiers.ToArray())
         {
             if (soldier != null && !soldier.Equals(null) && soldier.gameObject != null)
             {
-                try
-                {
-                    ArmySoldier soldierScript = soldier.GetComponent<ArmySoldier>();
-                    if (soldierScript != null && soldierScript.armyManager == null)
-                        soldierScript.armyManager = this;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogWarning($"Error refreshing army manager reference: {e.Message}");
-                    // Remove the problematic soldier from the list
-                    soldiers.Remove(soldier);
-                }
+                ArmySoldier soldierScript = soldier.GetComponent<ArmySoldier>();
+                if (soldierScript != null && soldierScript.armyManager == null)
+                    soldierScript.armyManager = this;
             }
         }
-        
-        // Final cleanup after processing
         CleanupNullSoldiers();
     }
 
@@ -410,8 +342,6 @@ public class ArmyManager : MonoBehaviour
     public List<Transform> GetAvailableSoldiers()
     {
         CleanupNullSoldiers();
-        
-        // Additional safety check - filter out any null soldiers that might have slipped through
         List<Transform> availableSoldiers = new List<Transform>();
         foreach (Transform soldier in soldiers)
         {
@@ -420,7 +350,6 @@ public class ArmyManager : MonoBehaviour
                 availableSoldiers.Add(soldier);
             }
         }
-        
         return availableSoldiers;
     }
 
@@ -453,11 +382,9 @@ public class ArmyManager : MonoBehaviour
         {
             if (soldier != null)
             {
-                // Kill all animations immediately and completely
                 soldier.DOKill(true);
                 DOTween.Kill(soldier, true);
                 DOTween.Kill(soldier.gameObject, true);
-                
                 Destroy(soldier.gameObject);
             }
         }
@@ -467,7 +394,6 @@ public class ArmyManager : MonoBehaviour
 
     void OnDestroy()
     {
-        // Kill all DOTween animations before destroying
         if (transform != null && !transform.Equals(null))
         {
             try
@@ -475,13 +401,9 @@ public class ArmyManager : MonoBehaviour
                 transform.DOKill(true);
                 DOTween.Kill(transform, true);
             }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning($"Error killing DOTween on ArmyManager transform: {e.Message}");
-            }
+            catch { }
         }
 
-        // Create a copy of the list to avoid modification during iteration
         var soldiersCopy = new List<Transform>(soldiers);
         foreach (Transform soldier in soldiersCopy)
         {
@@ -493,10 +415,7 @@ public class ArmyManager : MonoBehaviour
                     DOTween.Kill(soldier, true);
                     DOTween.Kill(soldier.gameObject, true);
                 }
-                catch (System.Exception e)
-                {
-                    Debug.LogWarning($"Error killing DOTween on soldier: {e.Message}");
-                }
+                catch { }
             }
         }
 
@@ -507,13 +426,9 @@ public class ArmyManager : MonoBehaviour
                 player.DOKill(true);
                 DOTween.Kill(player, true);
             }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning($"Error killing DOTween on player: {e.Message}");
-            }
+            catch { }
         }
-        
-        // Clear the list to prevent further access
+
         soldiers.Clear();
     }
 
@@ -538,13 +453,9 @@ public class ArmyManager : MonoBehaviour
                 transform.DOKill(true);
                 DOTween.Kill(transform, true);
             }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning($"Error killing DOTween animations on ArmyManager: {e.Message}");
-            }
+            catch { }
         }
 
-        // Create a copy to avoid collection modification issues
         var soldiersCopy = new List<Transform>(soldiers);
         foreach (Transform soldier in soldiersCopy)
         {
@@ -556,10 +467,7 @@ public class ArmyManager : MonoBehaviour
                     DOTween.Kill(soldier, true);
                     DOTween.Kill(soldier.gameObject, true);
                 }
-                catch (System.Exception e)
-                {
-                    Debug.LogWarning($"Error killing DOTween animations on soldier: {e.Message}");
-                }
+                catch { }
             }
         }
 
@@ -570,13 +478,9 @@ public class ArmyManager : MonoBehaviour
                 player.DOKill(true);
                 DOTween.Kill(player, true);
             }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning($"Error killing DOTween animations on player: {e.Message}");
-            }
+            catch { }
         }
-        
-        // Clean up null references after killing animations
+
         CleanupNullSoldiers();
     }
 

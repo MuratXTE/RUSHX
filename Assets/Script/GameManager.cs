@@ -28,8 +28,9 @@ public class GameManager : MonoBehaviour
     Matematiksel_islemler _Matematiksel_islemler = new Matematiksel_islemler();
     BellekYonetim _BellekYonetim = new BellekYonetim();
     VeriYonetimi _VeriYonetim = new VeriYonetimi();
-    ReklamManager _ReklamManager = new ReklamManager();
-    UnityEngine.SceneManagement.Scene _Scene;
+    // ❌ HATALI KULLANIM KALDIRILDI:
+    // ReklamManager _ReklamManager = new ReklamManager();
+    Scene _Scene;
 
     [Header("----------------------------GENEL VERİLERİ")]
     public AudioSource[] Sesler;
@@ -55,30 +56,45 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         _Scene = SceneManager.GetActiveScene();
+
+        // ✅ Kaydedilmiş level varsa oradan başlat
+        int sonLevel = _BellekYonetim.VeriOku_i("SonLevel");
+        if (sonLevel > 1 && _Scene.buildIndex == 1)
+        {
+            StartCoroutine(LoadSceneSafe(sonLevel));
+            return;
+        }
+
         _VeriYonetim.Dil_Load();
         _DilOkunanVeriler = _VeriYonetim.DilVerileriListeyiAktar();
         _DilVerileriAnaObje.Add(_DilOkunanVeriler[5]);
         DilTercihiYonetimi();
 
-        // ✅ sadece tek reklam çağrısı
-        Object.FindFirstObjectByType<ReklamManager>().GecisReklamiGoster();
+        StartCoroutine(GecikmeliReklam());
+    }
+
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause)
+            StartCoroutine(GuvenliKaydet());
+    }
+
+    private IEnumerator GuvenliKaydet()
+    {
+        yield return null;
+        PlayerPrefs.Save();
     }
 
     void DilTercihiYonetimi()
     {
-        if (_BellekYonetim.VeriOku_s("Dil") == "EN")
+        string aktifDil = _BellekYonetim.VeriOku_s("Dil");
+        for (int i = 0; i < TextObjeleri.Length; i++)
         {
-            for (int i = 0; i < TextObjeleri.Length; i++)
+            if (aktifDil == "EN")
                 TextObjeleri[i].text = _DilVerileriAnaObje[0]._DilVerileri_EN[i].Metin;
-        }
-        else if (_BellekYonetim.VeriOku_s("Dil") == "TR")
-        {
-            for (int i = 0; i < TextObjeleri.Length; i++)
+            else if (aktifDil == "TR")
                 TextObjeleri[i].text = _DilVerileriAnaObje[0]._DilVerileri_TR[i].Metin;
-        }
-        else
-        {
-            for (int i = 0; i < TextObjeleri.Length; i++)
+            else
                 TextObjeleri[i].text = _DilVerileriAnaObje[0]._DilVerileri_DE[i].Metin;
         }
     }
@@ -90,90 +106,64 @@ public class GameManager : MonoBehaviour
             if (AnlikKarakterSayisi <= 1)
             {
                 OyunBittimi = true;
-
                 foreach (var item in Karakterler)
-                {
                     if (item.activeInHierarchy)
                         item.GetComponent<Animator>().SetBool("Saldir", false);
-                }
 
                 _AnaKarakter.GetComponent<Animator>().SetBool("Saldir", false);
 
-                _ReklamManager.GecisReklamiGoster();
-
+                StartCoroutine(GecikmeliReklam());
                 islemPanelleri[3].SetActive(true); // kaybettin paneli
             }
             else
             {
                 OyunBittimi = true;
 
-                // Puan + level kaydı
                 if (_Scene.buildIndex == _BellekYonetim.VeriOku_i("SonLevel"))
                 {
-                    if (AnlikKarakterSayisi > 5)
-                        _BellekYonetim.VeriKaydet_int("Puan", _BellekYonetim.VeriOku_i("Puan") + 600);
-                    else
-                        _BellekYonetim.VeriKaydet_int("Puan", _BellekYonetim.VeriOku_i("Puan") + 100);
-
+                    int puan = (AnlikKarakterSayisi > 5) ? 600 : 100;
+                    _BellekYonetim.VeriKaydet_int("Puan", _BellekYonetim.VeriOku_i("Puan") + puan);
                     _BellekYonetim.VeriKaydet_int("SonLevel", _BellekYonetim.VeriOku_i("SonLevel") + 1);
                 }
 
+                StartCoroutine(GecikmeliReklam());
                 islemPanelleri[2].SetActive(true); // kazandın paneli
             }
         }
+    }
+
+    private IEnumerator GecikmeliReklam()
+    {
+        yield return new WaitForSeconds(0.2f);
+        // ✅ DOĞRU KULLANIM: Singleton Instance ile erişim
+        ReklamManager.Instance.GecisReklamiGoster();
     }
 
     public void AdamYonetimi(string islemturu, int GelenSayi, Transform Pozisyon)
     {
         switch (islemturu)
         {
-            case "Carpma":
-                _Matematiksel_islemler.Carpma(GelenSayi, Karakterler, Pozisyon, null);
-                break;
-            case "Toplama":
-                _Matematiksel_islemler.Toplama(GelenSayi, Karakterler, Pozisyon, null);
-                break;
-            case "Cikartma":
-                _Matematiksel_islemler.Cikartma(GelenSayi, Karakterler, null);
-                break;
-            case "Bolme":
-                _Matematiksel_islemler.Bolme(GelenSayi, Karakterler, null);
-                break;
+            case "Carpma": _Matematiksel_islemler.Carpma(GelenSayi, Karakterler, Pozisyon, null); break;
+            case "Toplama": _Matematiksel_islemler.Toplama(GelenSayi, Karakterler, Pozisyon, null); break;
+            case "Cikartma": _Matematiksel_islemler.Cikartma(GelenSayi, Karakterler, null); break;
+            case "Bolme": _Matematiksel_islemler.Bolme(GelenSayi, Karakterler, null); break;
         }
     }
 
     public void ItemleriKontrolEt()
     {
-        if (_BellekYonetim.VeriOku_i("AktifSapka") != -1)
-        {
-            int sapkaIndex = _BellekYonetim.VeriOku_i("AktifSapka");
-            if (sapkaIndex < Sapkalar.Length)
-                Sapkalar[sapkaIndex].SetActive(true);
-        }
+        int sapkaIndex = _BellekYonetim.VeriOku_i("AktifSapka");
+        if (sapkaIndex >= 0 && sapkaIndex < Sapkalar.Length)
+            Sapkalar[sapkaIndex].SetActive(true);
 
-        if (_BellekYonetim.VeriOku_i("AktifSopa") != -1)
-        {
-            int sopaIndex = _BellekYonetim.VeriOku_i("AktifSopa");
-            if (sopaIndex < Sopalar.Length)
-                Sopalar[sopaIndex].SetActive(true);
-        }
+        int sopaIndex = _BellekYonetim.VeriOku_i("AktifSopa");
+        if (sopaIndex >= 0 && sopaIndex < Sopalar.Length)
+            Sopalar[sopaIndex].SetActive(true);
 
-        if (_BellekYonetim.VeriOku_i("AktifTema") != -1)
-        {
-            int temaIndex = _BellekYonetim.VeriOku_i("AktifTema");
-            if (temaIndex < Materyaller.Length)
-            {
-                Material[] mats = _Renderer.materials;
-                mats[0] = Materyaller[temaIndex];
-                _Renderer.materials = mats;
-            }
-        }
-        else
-        {
-            Material[] mats = _Renderer.materials;
-            mats[0] = VarsayilanTema;
-            _Renderer.materials = mats;
-        }
+        int temaIndex = _BellekYonetim.VeriOku_i("AktifTema");
+        Material[] mats = _Renderer.materials;
+        mats[0] = (temaIndex >= 0 && temaIndex < Materyaller.Length) ? Materyaller[temaIndex] : VarsayilanTema;
+        _Renderer.materials = mats;
     }
 
     public void CikisButonislem(string durum)
@@ -190,12 +180,12 @@ public class GameManager : MonoBehaviour
         }
         else if (durum == "tekrar")
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            StartCoroutine(LoadSceneSafe(SceneManager.GetActiveScene().buildIndex));
             Time.timeScale = 1;
         }
         else if (durum == "Anasayfa")
         {
-            SceneManager.LoadScene(0);
+            StartCoroutine(LoadSceneSafe(0));
             Time.timeScale = 1;
         }
     }
@@ -223,6 +213,9 @@ public class GameManager : MonoBehaviour
 
     public void SonrakiLevel()
     {
+        if (_Scene.buildIndex >= _BellekYonetim.VeriOku_i("SonLevel"))
+            _BellekYonetim.VeriKaydet_int("SonLevel", _Scene.buildIndex + 1);
+
         StartCoroutine(LoadAsync(_Scene.buildIndex + 1));
     }
 
@@ -238,8 +231,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    IEnumerator LoadSceneSafe(int index)
+    {
+        yield return null; // 1 frame bekle
+        SceneManager.LoadScene(index);
+    }
+
     public void OdulluReklam()
     {
-        _ReklamManager.OdulluReklamGoster();
+        // ✅ DOĞRU KULLANIM: Singleton Instance ile erişim
+        ReklamManager.Instance.OdulluReklamGoster();
     }
 }

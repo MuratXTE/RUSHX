@@ -25,7 +25,9 @@ public class Level_Manager : MonoBehaviour
     {
         _VeriYonetim.Dil_Load();
         _DilOkunanVeriler = _VeriYonetim.DilVerileriListeyiAktar();
-        _DilVerileriAnaObje.Add(_DilOkunanVeriler[2]);
+        if (_DilOkunanVeriler != null && _DilOkunanVeriler.Count > 2)
+            _DilVerileriAnaObje.Add(_DilOkunanVeriler[2]);
+
         DilTercihiYonetimi();
 
         ButonSes.volume = _BellekYonetim.VeriOku_f("MenuFx");
@@ -38,27 +40,41 @@ public class Level_Manager : MonoBehaviour
             if (Index <= mevcutLevel)
             {
                 Butonlar[i].GetComponentInChildren<Text>().text = Index.ToString();
-                int SahneIndex = Index; // artýk ofset yok!
+                int SahneIndex = Index;
                 Butonlar[i].onClick.AddListener(() => SahneYukle(SahneIndex));
                 Butonlar[i].interactable = true;
             }
             else
             {
                 Butonlar[i].GetComponent<Image>().sprite = KilitButon;
-                Butonlar[i].interactable = false; // Doðru kullaným
+                Butonlar[i].interactable = false;
             }
             Index++;
         }
     }
 
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause)
+            StartCoroutine(GuvenliKaydet());
+    }
+
+    private IEnumerator GuvenliKaydet()
+    {
+        yield return null;
+        PlayerPrefs.Save();
+    }
+
     void DilTercihiYonetimi()
     {
-        if (_BellekYonetim.VeriOku_s("Dil") == "EN")
+        string aktifDil = _BellekYonetim.VeriOku_s("Dil");
+
+        if (aktifDil == "EN")
         {
             for (int i = 0; i < TextObjeleri.Length; i++)
                 TextObjeleri[i].text = _DilVerileriAnaObje[0]._DilVerileri_EN[i].Metin;
         }
-        else if (_BellekYonetim.VeriOku_s("Dil") == "TR")
+        else if (aktifDil == "TR")
         {
             for (int i = 0; i < TextObjeleri.Length; i++)
                 TextObjeleri[i].text = _DilVerileriAnaObje[0]._DilVerileri_TR[i].Metin;
@@ -80,7 +96,7 @@ public class Level_Manager : MonoBehaviour
     {
         AsyncOperation operation = SceneManager.LoadSceneAsync(SceneIndex);
         YuklemeEkrani.SetActive(true);
-        while (!operation.isDone)
+        while (operation != null && !operation.isDone)
         {
             float progress = Mathf.Clamp01(operation.progress / .9f);
             YuklemeSlider.value = progress;
@@ -91,6 +107,12 @@ public class Level_Manager : MonoBehaviour
     public void GeriDon()
     {
         ButonSes.Play();
-        SceneManager.LoadScene(0);
+        StartCoroutine(LoadSceneSafe(0));
+    }
+
+    IEnumerator LoadSceneSafe(int index)
+    {
+        yield return null;
+        SceneManager.LoadScene(index);
     }
 }

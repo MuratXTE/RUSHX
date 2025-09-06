@@ -10,15 +10,14 @@ TagManager:
   - Toplama
   - Cikartma
   - Bolme
-  - Testere
   - PervaneIgneler
   - AltKarakterler
-  - Balyoz
   - Dusman
   - Sontetikleyici
   - Direk
   - BosKarakter
   - MenuSes
+  - Obstacle
   layers:
   - Default
   - TransparentFX

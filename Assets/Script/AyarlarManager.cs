@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using Murat;
 using System.Collections.Generic;
 using TMPro;
+using System.Collections;
 
 public class AyarlarManager : MonoBehaviour
 {
@@ -11,8 +12,10 @@ public class AyarlarManager : MonoBehaviour
     public Slider MenuSes;
     public Slider MenuFx;
     public Slider OyunSes;
+
     BellekYonetim _BellekYonetim = new BellekYonetim();
     VeriYonetimi _VeriYonetim = new VeriYonetimi();
+
     public List<DilVerileriAnaObje> _DilVerileriAnaObje = new List<DilVerileriAnaObje>();
     List<DilVerileriAnaObje> _DilOkunanVeriler = new List<DilVerileriAnaObje>();
     public TextMeshProUGUI[] TextObjeleri;
@@ -29,10 +32,10 @@ public class AyarlarManager : MonoBehaviour
         MenuSes.value = _BellekYonetim.VeriOku_f("MenuSes");
         MenuFx.value = _BellekYonetim.VeriOku_f("MenuFx");
         OyunSes.value = _BellekYonetim.VeriOku_f("OyunSes");
+
         _VeriYonetim.Dil_Load();
         _DilOkunanVeriler = _VeriYonetim.DilVerileriListeyiAktar();
 
-        // Null check eklendi
         if (_DilOkunanVeriler != null && _DilOkunanVeriler.Count > 4)
         {
             _DilVerileriAnaObje.Add(_DilOkunanVeriler[4]);
@@ -47,9 +50,20 @@ public class AyarlarManager : MonoBehaviour
         DilDurumunuKontrolEt();
     }
 
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause)
+            StartCoroutine(GuvenliKaydet());
+    }
+
+    private IEnumerator GuvenliKaydet()
+    {
+        yield return null; // frame boþalt
+        PlayerPrefs.Save();
+    }
+
     void DilTercihiYonetimi()
     {
-        // Null check eklendi
         if (_DilVerileriAnaObje == null || _DilVerileriAnaObje.Count == 0)
         {
             Debug.LogError("Dil verileri bulunamadý!");
@@ -61,26 +75,20 @@ public class AyarlarManager : MonoBehaviour
         if (aktifDil == "EN")
         {
             for (int i = 0; i < TextObjeleri.Length; i++)
-            {
                 if (i < _DilVerileriAnaObje[0]._DilVerileri_EN.Count)
                     TextObjeleri[i].text = _DilVerileriAnaObje[0]._DilVerileri_EN[i].Metin;
-            }
         }
         else if (aktifDil == "TR")
         {
             for (int i = 0; i < TextObjeleri.Length; i++)
-            {
                 if (i < _DilVerileriAnaObje[0]._DilVerileri_TR.Count)
                     TextObjeleri[i].text = _DilVerileriAnaObje[0]._DilVerileri_TR[i].Metin;
-            }
         }
-        else // DE (Deutsch)
+        else // DE
         {
             for (int i = 0; i < TextObjeleri.Length; i++)
-            {
                 if (i < _DilVerileriAnaObje[0]._DilVerileri_DE.Count)
                     TextObjeleri[i].text = _DilVerileriAnaObje[0]._DilVerileri_DE[i].Metin;
-            }
         }
     }
 
@@ -93,7 +101,7 @@ public class AyarlarManager : MonoBehaviour
                 break;
             case "menufx":
                 _BellekYonetim.VeriKaydet_float("MenuFx", MenuFx.value);
-                ButonSes.volume = MenuFx.value; // Ses seviyesini güncelle
+                ButonSes.volume = MenuFx.value;
                 break;
             case "oyunses":
                 _BellekYonetim.VeriKaydet_float("OyunSes", OyunSes.value);
@@ -104,14 +112,19 @@ public class AyarlarManager : MonoBehaviour
     public void GeriDon()
     {
         ButonSes.Play();
-        SceneManager.LoadScene(0);
+        StartCoroutine(LoadSceneSafe(0));
+    }
+
+    IEnumerator LoadSceneSafe(int index)
+    {
+        yield return null; // 1 frame bekle
+        SceneManager.LoadScene(index);
     }
 
     void DilDurumunuKontrolEt()
     {
         string aktifDil = _BellekYonetim.VeriOku_s("Dil");
 
-        // Array bounds check
         if (DilButonlari == null || DilButonlari.Length < 2)
         {
             Debug.LogError("DilButonlari array'i düzgün ayarlanmamýþ!");
@@ -141,26 +154,22 @@ public class AyarlarManager : MonoBehaviour
         }
     }
 
-    // DÜZELTÝLMÝÞ DÝL DEÐÝÞTÝR METODÝ
     public void DilDegistir(string Yon)
     {
         if (Yon == "ileri")
         {
-            // Sonraki dile geç
             AktifDilIndex++;
-            if (AktifDilIndex > 2) AktifDilIndex = 0; // Döngü yap
+            if (AktifDilIndex > 2) AktifDilIndex = 0;
         }
         else if (Yon == "geri")
         {
-            // Önceki dile geç
             AktifDilIndex--;
-            if (AktifDilIndex < 0) AktifDilIndex = 2; // Döngü yap
+            if (AktifDilIndex < 0) AktifDilIndex = 2;
         }
 
-        // Aktif dile göre ayarlarý yap
         switch (AktifDilIndex)
         {
-            case 0: // English
+            case 0:
                 DilText.text = "ENGLISH";
                 if (DilButonlari.Length >= 2)
                 {
@@ -170,7 +179,7 @@ public class AyarlarManager : MonoBehaviour
                 _BellekYonetim.VeriKaydet_string("Dil", "EN");
                 break;
 
-            case 1: // Türkçe
+            case 1:
                 DilText.text = "TÜRKÇE";
                 if (DilButonlari.Length >= 2)
                 {
@@ -180,7 +189,7 @@ public class AyarlarManager : MonoBehaviour
                 _BellekYonetim.VeriKaydet_string("Dil", "TR");
                 break;
 
-            case 2: // Deutsch
+            case 2:
                 DilText.text = "DEUTSCH";
                 if (DilButonlari.Length >= 2)
                 {
@@ -191,7 +200,6 @@ public class AyarlarManager : MonoBehaviour
                 break;
         }
 
-        // Dil deðiþikliðini uygula
         DilTercihiYonetimi();
         ButonSes.Play();
     }

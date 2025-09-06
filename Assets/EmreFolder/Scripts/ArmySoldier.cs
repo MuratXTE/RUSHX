@@ -10,7 +10,7 @@ public class ArmySoldier : MonoBehaviour
     [Header("Soldier Settings")]
     public float health = 1f;
     public bool canDie = true;
-    
+
     [Header("Combat Settings")]
     [Tooltip("Is this soldier currently moving to combat? Makes them temporarily invulnerable to obstacles.")]
     public bool isInCombatMovement = false;
@@ -39,14 +39,12 @@ public class ArmySoldier : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Don't die from obstacles if in combat movement or can't die
         if (other.CompareTag("Obstacle") && canDie && !isInCombatMovement)
             Die();
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Don't die from obstacles if in combat movement or can't die
         if (collision.gameObject.CompareTag("Obstacle") && canDie && !isInCombatMovement)
             Die();
     }
@@ -97,43 +95,34 @@ public class ArmySoldier : MonoBehaviour
     public void ApplyItemsToSoldier()
     {
         // Sapka
-        if (_BellekYonetim.VeriOku_i("AktifSapka") != -1)
+        int sapkaIndex = _BellekYonetim.VeriOku_i("AktifSapka");
+        if (sapkaIndex != -1 && Sapkalar != null && sapkaIndex < Sapkalar.Length)
         {
-            int sapkaIndex = _BellekYonetim.VeriOku_i("AktifSapka");
-            if (Sapkalar != null && sapkaIndex < Sapkalar.Length)
+            foreach (var sapka in Sapkalar)
             {
-                foreach (var sapka in Sapkalar)
-                {
-                    if (sapka != null) sapka.SetActive(false);
-                }
-                Sapkalar[sapkaIndex].SetActive(true);
+                if (sapka != null) sapka.SetActive(false);
             }
+            Sapkalar[sapkaIndex].SetActive(true);
         }
 
         // Sopa
-        if (_BellekYonetim.VeriOku_i("AktifSopa") != -1)
+        int sopaIndex = _BellekYonetim.VeriOku_i("AktifSopa");
+        if (sopaIndex != -1 && Sopalar != null && sopaIndex < Sopalar.Length)
         {
-            int sopaIndex = _BellekYonetim.VeriOku_i("AktifSopa");
-            if (Sopalar != null && sopaIndex < Sopalar.Length)
+            foreach (var sopa in Sopalar)
             {
-                foreach (var sopa in Sopalar)
-                {
-                    if (sopa != null) sopa.SetActive(false);
-                }
-                Sopalar[sopaIndex].SetActive(true);
+                if (sopa != null) sopa.SetActive(false);
             }
+            Sopalar[sopaIndex].SetActive(true);
         }
 
         // Tema (Materyal)
-        if (_BellekYonetim.VeriOku_i("AktifTema") != -1)
+        int temaIndex = _BellekYonetim.VeriOku_i("AktifTema");
+        if (temaIndex != -1 && Materyaller != null && temaIndex < Materyaller.Length && _Renderer != null)
         {
-            int temaIndex = _BellekYonetim.VeriOku_i("AktifTema");
-            if (Materyaller != null && temaIndex < Materyaller.Length && _Renderer != null)
-            {
-                Material[] mats = _Renderer.materials;
-                mats[0] = Materyaller[temaIndex];
-                _Renderer.materials = mats;
-            }
+            Material[] mats = _Renderer.materials;
+            mats[0] = Materyaller[temaIndex];
+            _Renderer.materials = mats;
         }
         else
         {
